@@ -25,6 +25,8 @@ stmt
     | assig SEMI           #stmt_assig
     | print SEMI           #stmt_print
     | stmt_block SEMI      #stmt_stmt_block
+    | SPAWN stmt_block     #stmt_spawn
+
     ;
 //
 assig_trgt
@@ -98,6 +100,8 @@ expr
     : LPAREN expr RPAREN                #expr_paren
     | func_call_expr                    #expr_func_call
     | expr idx_access                   #expr_access
+    | SPAWN expr                        #expr_spawn
+
     // boolean expressions
     | expr (AND | OR) expr              #bool_expr_binary
     | expr

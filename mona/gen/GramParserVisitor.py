@@ -1,5 +1,6 @@
+# Generated from GramParser.g4 by ANTLR 4.13.2
 from antlr4 import *
-if __name__ is not None and "." in __name__:
+if "." in __name__:
     from .GramParser import GramParser
 else:
     from GramParser import GramParser
@@ -50,6 +51,11 @@ class GramParserVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by GramParser#stmt_stmt_block.
     def visitStmt_stmt_block(self, ctx:GramParser.Stmt_stmt_blockContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by GramParser#stmt_spawn.
+    def visitStmt_spawn(self, ctx:GramParser.Stmt_spawnContext):
         return self.visitChildren(ctx)
 
 
@@ -170,6 +176,11 @@ class GramParserVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by GramParser#expr_paren.
     def visitExpr_paren(self, ctx:GramParser.Expr_parenContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by GramParser#expr_spawn.
+    def visitExpr_spawn(self, ctx:GramParser.Expr_spawnContext):
         return self.visitChildren(ctx)
 
 

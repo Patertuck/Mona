@@ -12,5 +12,21 @@ class Program(Component):
 
     def _eval_body(self, env: Environment) -> None:
         super(Program, self)._eval_body(env=env)
+
         for stmt in self.stmts:
             stmt.eval(env=env)
+
+        env.wait_for_threads()
+
+
+class EvalJob:
+    def __init__(self, stmt):
+        self.stmt = stmt
+
+    def __call__(self, env):
+        self.stmt.eval(env)
+
+    def __repr__(self):
+        return f"<EvalJob for {self.stmt}>"
+
+        

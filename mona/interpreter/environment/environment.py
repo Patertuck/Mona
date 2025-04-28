@@ -7,7 +7,7 @@ import pickle
 import sys
 import threading
 import uuid
-from collections import OrderedDict
+from collections import OrderedDict, deque
 from typing import Any, Final, Optional, Callable
 
 
@@ -22,6 +22,7 @@ class ExecMode(abc.ABC):
         self._dump_dir = dump_dir
 
     def snapshot(self, env: Environment, snap_id: Optional[int]) -> None:
+        #print(f"[DEBUG] Snapshotting with {len(env._msg_queue)} jobs")
         filename: str = os.path.join(self._dump_dir, f"{snap_id}_snap.pickle")
         with open(filename, "wb") as df:
             pickle.dump(env, df)
@@ -86,6 +87,9 @@ class ExecModeRecord(ExecMode):
 
     def _snap_src(self) -> None:
         if self._src_env is not None:
+            #print("[DEBUG] Snapshot queue contents:")
+            #self._src_env.print_all_jobs()
+
             src_env_ref = self._src_env
             src_env_snap_id = self._snap_id - 1
             self._inject_snap_mode(src_env_ref, src_env_snap_id, steps=self._exec_steps)
@@ -142,7 +146,9 @@ class ExecModeReplay(ExecMode):
     def exec(self, env: Environment) -> None:
         self.run_stmts += 1
         self._curr_steps -= 1
+        # Explain this to me
         if self._curr_steps == 0:
+            print(f"[REPLAY] Stopping replay. Snapshotting at seq_id={env.seq_id}, run_stmts={self.run_stmts}")
             self.snapshot(env, self._snap_id)
             sys.exit()
 
@@ -191,11 +197,31 @@ class IllegalTraceUpdateException(RuntimeError):
         self.trace_seq_id = trace_seq_id
         self.overwrite_seq_id = overwrite_seq_id
 
+class MessageQueue:
+    def __init__(self):
+        self._queue = deque()
+
+    def enqueue(self, value: Any) -> None:
+        self._queue.append(value)
+
+    def dequeue(self) -> Optional[Any]:
+        if self._queue:
+            return self._queue.popleft()
+        return None
+
+    def is_empty(self) -> bool:
+        return not self._queue
+
+    def __len__(self):
+        return len(self._queue)
+
 
 class Environment:
     _mem: OrderedDict[int, OrderedDict[str, Any]]
     stack: list[Any]
-
+    _msg_queue: MessageQueue
+    _threads: list[threading.Thread]
+    
     trace_idx: int
     call_trace: list[int]
 
@@ -208,11 +234,20 @@ class Environment:
         self.call_trace = [-1]
 
         self._mem = OrderedDict()
+        self._msg_queue = MessageQueue()
+        self._threads = []
         self.stack = list()
 
         self._io_logs = IOLogs()
 
         self._exec_mode = exec_mode
+
+    def wait_for_threads(self):
+        print(f"Current threads: {len(self._threads)}")
+        for thread in self._threads:
+            thread.join()
+
+
 
     @property
     def seq_id(self) -> int:
@@ -310,6 +345,10 @@ class Environment:
 
     def after_execution(self) -> None:
         self._exec_mode.after_execution(env=self)
+        print("Threads:")
+        print(self._threads)
+        for t in self._threads:
+            t.join()
 
     def add_io_in(self, value: Any) -> None:
         self._io_logs.add_io_in(value=value)
@@ -319,3 +358,15 @@ class Environment:
 
     def clear_io(self) -> None:
         self._io_logs.clear()
+
+    def enqueue_job(self, job: Callable[[], None]) -> None:
+        print(f"[DEBUG] Enqueuing job: {job}")
+        self._msg_queue.enqueue(job)
+        print(f"[DEBGUG] Length of queue: {len(self._msg_queue)}")
+
+    def print_all_jobs(self) -> None:
+        print("Current jobs in the queue:")
+        for job in list(self._msg_queue._queue):
+            print(job)
+
+    

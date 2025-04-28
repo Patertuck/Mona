@@ -9,6 +9,7 @@ FLOORINTOF: 'floorintof';
 ROUNDINTOF: 'roundintof';
 CEILINTOF: 'ceilintof';
 SIN: 'sin';
+SPAWN: 'spawn';
 WHILE: 'while';
 
 TRUE: 'True';

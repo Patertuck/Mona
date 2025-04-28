@@ -1,5 +1,6 @@
+# Generated from GramParser.g4 by ANTLR 4.13.2
 from antlr4 import *
-if __name__ is not None and "." in __name__:
+if "." in __name__:
     from .GramParser import GramParser
 else:
     from GramParser import GramParser
@@ -85,6 +86,15 @@ class GramParserListener(ParseTreeListener):
 
     # Exit a parse tree produced by GramParser#stmt_stmt_block.
     def exitStmt_stmt_block(self, ctx:GramParser.Stmt_stmt_blockContext):
+        pass
+
+
+    # Enter a parse tree produced by GramParser#stmt_spawn.
+    def enterStmt_spawn(self, ctx:GramParser.Stmt_spawnContext):
+        pass
+
+    # Exit a parse tree produced by GramParser#stmt_spawn.
+    def exitStmt_spawn(self, ctx:GramParser.Stmt_spawnContext):
         pass
 
 
@@ -301,6 +311,15 @@ class GramParserListener(ParseTreeListener):
 
     # Exit a parse tree produced by GramParser#expr_paren.
     def exitExpr_paren(self, ctx:GramParser.Expr_parenContext):
+        pass
+
+
+    # Enter a parse tree produced by GramParser#expr_spawn.
+    def enterExpr_spawn(self, ctx:GramParser.Expr_spawnContext):
+        pass
+
+    # Exit a parse tree produced by GramParser#expr_spawn.
+    def exitExpr_spawn(self, ctx:GramParser.Expr_spawnContext):
         pass
 
 

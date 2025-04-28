@@ -2,6 +2,7 @@ from typing import Optional, Final
 
 from mona.interpreter.component.arg_lst import ArgumentList
 from mona.interpreter.component.component import Component
+from mona.interpreter.component.spawn import Spawn
 from mona.interpreter.component.else_stmt import ElseStmt
 from mona.interpreter.component.elseif_stmt import ElseIfStmt
 from mona.interpreter.component.func_call import FunctionCall, FunctionCallBase, SinCall
@@ -428,6 +429,16 @@ class Preprocessor(GramParserVisitor):
             seq_id=self.comp_store.next_seq_id, iden=ctx.CEILINTOF().getText(), arg_lst=arg_lst
         )
         return self._register(cmp)
+    
+    ###########
+    # spawn_stmt #
+    ###########
+
+    def visitStmt_spawn(self, ctx: GramParser.Stmt_spawnContext) -> Spawn:
+        stmt_block: StmtBlock = self.visit(ctx.stmt_block())
+        cmp = Spawn(seq_id=self.comp_store.next_seq_id, stmt_block=stmt_block)
+        return self._register(cmp)
+
 
 
     ###########
