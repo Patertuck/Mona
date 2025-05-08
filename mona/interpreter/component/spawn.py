@@ -10,13 +10,28 @@ class Spawn(Component):
         self.stmt_block = stmt_block
 
     def _eval_body(self, env: Environment) -> None:
-        def thread_fn():
-            #print(f"[DEBUG] Running Spawn thread for {self.seq_id}")
-            
-            self.stmt_block.eval(env)
-            #print(f"[DEBUG] Finished Spawn thread for {self.seq_id}")
+        # In parent, do normal seq_id update
+        if env.trace_idx != len(env.call_trace) - 1:
+            env.add_trace(self.seq_id)
+        else:
+            env.seq_id = self.seq_id
 
+        # Make a deep copy of the env for the thread
+        thread_env = copy.deepcopy(env)
+
+        def thread_fn():
+            try:
+                # In the thread: add new trace
+                thread_env.add_trace(self.seq_id)
+                
+                self.stmt_block.eval(thread_env)
+
+                thread_env.rm_trace()  # after eval, clean up
+
+            finally:
+                env.thread_done(self)
+
+        env.thread_started(self)  # parent enqueues the spawn job
         thread = threading.Thread(target=thread_fn)
         thread.start()
         env._threads.append(thread)
-

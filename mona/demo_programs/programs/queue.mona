@@ -1,20 +1,18 @@
 var n = 0;
 var i = 0;
-println("a");
-println("b");
+n = n + 1;
 
 spawn{
-    println(n);
-    println("c");
-    while (i < 10){
-        println("Hello");
-        i = i + 1;
-    }
-    println(n);
+    println("b");
 }
 
+while (i < 10){
+    spawn{
+        println("Hello");
+    }
+    i = i + 1;
+}
 println(n);
-println("c");
-println("d");
-println("e");
-println(n);
+
+
+println("after thread");

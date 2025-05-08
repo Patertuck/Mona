@@ -1,0 +1,9 @@
+var n = 0;
+var i = 0;
+spawn{
+    while (i < 10){
+        println(n);
+        i = i + 1;
+    }
+}
+println(n);

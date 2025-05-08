@@ -14,11 +14,13 @@ from mona import runtime_factory
 # strlst([1, 2, 9]);
 # """
 with open("mona/demo_programs/programs/queue.mona", "r", encoding="utf-8") as f:
+#with open("mona/demo_programs/programs/singleThread.mona", "r", encoding="utf-8") as f:
+#with open("mona/demo_programs/programs/sharedVariable.mona", "r", encoding="utf-8") as f:
     DEMO_SRC = f.read()
 
 
 OUTPUT_DIR: Final[str] = os.path.join(os.getcwd(), "output_dir")
-STEPS: Final[int] = 5
+STEPS: Final[int] = 30
 SNAPNR: Final[int] = 2
 
 

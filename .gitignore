@@ -8,3 +8,4 @@ demo_programs/demo_dir/
 dist/
 mona.egg-info/
 .DS_Store
+.vscode/launch.json

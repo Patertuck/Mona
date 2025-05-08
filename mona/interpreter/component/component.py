@@ -5,8 +5,6 @@ import pickle
 import sys
 from typing import Final
 
-from mona.interpreter.environment.environment import Environment
-
 DEBUG = False
 
 

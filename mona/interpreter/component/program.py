@@ -17,16 +17,4 @@ class Program(Component):
             stmt.eval(env=env)
 
         env.wait_for_threads()
-
-
-class EvalJob:
-    def __init__(self, stmt):
-        self.stmt = stmt
-
-    def __call__(self, env):
-        self.stmt.eval(env)
-
-    def __repr__(self):
-        return f"<EvalJob for {self.stmt}>"
-
-        
+           

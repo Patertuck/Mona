@@ -11,6 +11,8 @@ from collections import OrderedDict, deque
 from typing import Any, Final, Optional, Callable
 
 
+
+
 class NoValue:
     pass
 
@@ -68,6 +70,8 @@ class ExecModeStmtCount(ExecMode):
         self.stmts_run += 1
 
     def after_execution(self, env: Environment) -> None:
+        #print(f"Current Threads: {env._threads}")
+        env._threads = []
         self.snapshot(env, 0)
 
 
@@ -91,18 +95,25 @@ class ExecModeRecord(ExecMode):
             #self._src_env.print_all_jobs()
 
             src_env_ref = self._src_env
+            src_env_ref._threads = []
             src_env_snap_id = self._snap_id - 1
             self._inject_snap_mode(src_env_ref, src_env_snap_id, steps=self._exec_steps)
             self.snapshot(env=src_env_ref, snap_id=src_env_snap_id)
 
     def before_execution(self, env: Environment) -> None:
+        saved_threads = env._threads
+        env._threads = []
         self._src_env = copy.deepcopy(env)
+        env._threads = saved_threads
         self._snap_id += 1
 
     def exec(self, env: Environment) -> None:
         self._exec_steps += 1
         if self._exec_steps == self._steps:
+       
+            #env.print_all_jobs()
             self._snap_src()
+            
             self._src_env = copy.deepcopy(env)
             self._snap_id += 1
             self._exec_steps: int = 0
@@ -142,6 +153,7 @@ class ExecModeReplay(ExecMode):
         env.trace_idx = 0
         # Clear ios before computation.
         env.clear_io()
+        env.clear_message_queue()  
 
     def exec(self, env: Environment) -> None:
         self.run_stmts += 1
@@ -208,6 +220,15 @@ class MessageQueue:
         if self._queue:
             return self._queue.popleft()
         return None
+    
+    def remove_job(self, job: EvalJob) -> None:
+        try:
+            # print(f"Removing job: {job}")
+            # print(f"MessageQueue: {self._queue}")
+
+            self._queue.remove(job)
+        except ValueError:
+            print(f"[WARNING] Tried to remove non-existing job: {job}")
 
     def is_empty(self) -> bool:
         return not self._queue
@@ -242,8 +263,17 @@ class Environment:
 
         self._exec_mode = exec_mode
 
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        state["_threads"] = []  # Remove active threads when pickling
+        return state
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        self._threads = []  # Reset threads list after unpickling
+
     def wait_for_threads(self):
-        print(f"Current threads: {len(self._threads)}")
+        #print(f"Current threads: {self._threads}")
         for thread in self._threads:
             thread.join()
 
@@ -359,14 +389,59 @@ class Environment:
     def clear_io(self) -> None:
         self._io_logs.clear()
 
+    def clear_message_queue(self) -> None:
+        self._msg_queue._queue.clear()    
+
     def enqueue_job(self, job: Callable[[], None]) -> None:
-        print(f"[DEBUG] Enqueuing job: {job}")
+        #print(f"[DEBUG] Enqueuing job: {job}")
         self._msg_queue.enqueue(job)
-        print(f"[DEBGUG] Length of queue: {len(self._msg_queue)}")
+        #print(f"[DEBGUG] Length of queue: {len(self._msg_queue)}")
 
     def print_all_jobs(self) -> None:
-        print("Current jobs in the queue:")
+        print(f"Current jobs in the queue (length = {len(self._msg_queue)}) :")
         for job in list(self._msg_queue._queue):
             print(job)
 
+    def thread_started(self, spawn_obj: "Spawn"):
+        from mona.interpreter.component.spawn import Spawn
+        eval_job = EvalJob(spawn_obj)
+        self.enqueue_job(eval_job)
+        
+
+
+    def thread_done(self, spawn_obj: "Spawn"):
+        from mona.interpreter.component.spawn import Spawn
+        
+        target_job = EvalJob(spawn_obj)
+        # Remove matching job
+        self._msg_queue.remove_job(target_job)
+
+class EvalJob:
+    def __init__(self, stmt):
+        self.stmt_type = type(stmt).__name__            # Store class name, like 'PrintLn', 'Spawn', etc.
+        self.seq_id = getattr(stmt, "seq_id", None)      # Get seq_id if it exists
+        self.has_arg_lst = hasattr(stmt, "arg_lst")      # Does this have an arg list?
+
+    def __call__(self, env):
+        raise RuntimeError("EvalJob is a metadata object, not executable.")
+
+    def __repr__(self):
+        info = {"seq_id": self.seq_id}
+        if self.has_arg_lst:
+            info["arg_lst"] = "(ArgumentList)"
+        return f"<EvalJob for ({self.stmt_type} | {info})>"
     
+    def __eq__(self, other):
+        if not isinstance(other, EvalJob):
+            return NotImplemented
+        return self.stmt_type == other.stmt_type and self.seq_id == other.seq_id
+
+    def __hash__(self):
+        return hash((self.stmt_type, self.seq_id))
+
+    def to_dict(self):
+        return {
+            "stmt_type": self.stmt_type,
+            "seq_id": self.seq_id,
+            "has_arg_lst": self.has_arg_lst,
+        }
