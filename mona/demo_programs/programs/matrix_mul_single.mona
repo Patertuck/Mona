@@ -67,8 +67,8 @@ var work_per_thread = 10;
 
 var i = 0;
 while (i < num_threads) {
-    spawn {
+
         perform_matrix_mul_work(work_per_thread, x);  // Each thread performs 1000 matrix multiplications
-    }
+    
     i = i + 1;
 }

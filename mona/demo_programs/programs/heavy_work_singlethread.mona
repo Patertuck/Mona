@@ -1,0 +1,26 @@
+decl busy_work(n) {
+    var sum = 0;
+    var i = 0;
+    while (i < n) {
+        sum = sum + i * i;  // Simulate a CPU-bound task (sum of squares)
+        i = i + 1;
+    }
+    ret sum; // Return the result (just to ensure that work is done)
+}
+
+decl run_sequentially(num_threads, work_size) {
+    var i = 0;
+
+    // Run the busy_work function sequentially for each thread
+    while (i < num_threads) {
+        busy_work(work_size);  // Each "thread" runs busy_work with a specific size
+        i = i + 1;
+    }
+}
+
+var num_threads = 8;  // Number of "threads" to run sequentially
+var work_size = 1000000;  // Size of the computational task each "thread" will execute
+println("Running ", num_threads, " threads with busy work (sequentially)...");
+
+run_sequentially(num_threads, work_size);  // Run the work sequentially
+println("All tasks completed.");
