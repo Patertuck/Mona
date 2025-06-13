@@ -5,7 +5,7 @@ import pickle
 import sys
 from typing import Final
 
-DEBUG = False
+DEBUG =  True
 
 
 class Component(abc.ABC):

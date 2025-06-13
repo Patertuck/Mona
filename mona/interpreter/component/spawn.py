@@ -11,22 +11,18 @@ class Spawn(Component):
 
     def _eval_body(self, env: Environment) -> None:
         # In parent, do normal seq_id update
-        if env.trace_idx != len(env.call_trace) - 1:
-            env.add_trace(self.seq_id)
-        else:
-            env.seq_id = self.seq_id
+        env.seq_id = self.seq_id
 
-        # Make a deep copy of the env for the thread
         thread_env = copy.deepcopy(env)
 
         def thread_fn():
             try:
-                # In the thread: add new trace
-                thread_env.add_trace(self.seq_id)
+               
+                thread_env.add_trace(0)
                 
                 self.stmt_block.eval(thread_env)
 
-                thread_env.rm_trace()  # after eval, clean up
+                thread_env.rm_trace()
 
             finally:
                 env.thread_done(self)

@@ -1,18 +1,22 @@
-var n = 0;
-var i = 0;
-n = n + 1;
-
+var done = 0;
 spawn{
-    println("b");
-}
 
-while (i < 10){
-    spawn{
-        println("Hello");
+    println("worker started");
+    var i = 0;
+    while (i < 10) {  // Simulated delay
+        i = i + 1;
+        println(i);
     }
-    i = i + 1;
+    println("worker finished");
+
+println("before join");
+
+
+println("after join");
+println("done value:");
 }
-println(n);
+println(done);
 
 
-println("after thread");
+[2, 8: {}]
+if dict multithread

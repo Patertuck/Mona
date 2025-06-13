@@ -1,4 +1,4 @@
-# Generated from GramParser.g4 by ANTLR 4.13.2
+# Generated from GramParser.g4 by ANTLR 4.13.0
 from antlr4 import *
 if "." in __name__:
     from .GramParser import GramParser
@@ -95,6 +95,15 @@ class GramParserListener(ParseTreeListener):
 
     # Exit a parse tree produced by GramParser#stmt_spawn.
     def exitStmt_spawn(self, ctx:GramParser.Stmt_spawnContext):
+        pass
+
+
+    # Enter a parse tree produced by GramParser#stmt_join.
+    def enterStmt_join(self, ctx:GramParser.Stmt_joinContext):
+        pass
+
+    # Exit a parse tree produced by GramParser#stmt_join.
+    def exitStmt_join(self, ctx:GramParser.Stmt_joinContext):
         pass
 
 

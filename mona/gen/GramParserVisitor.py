@@ -1,4 +1,4 @@
-# Generated from GramParser.g4 by ANTLR 4.13.2
+# Generated from GramParser.g4 by ANTLR 4.13.0
 from antlr4 import *
 if "." in __name__:
     from .GramParser import GramParser
@@ -56,6 +56,11 @@ class GramParserVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by GramParser#stmt_spawn.
     def visitStmt_spawn(self, ctx:GramParser.Stmt_spawnContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by GramParser#stmt_join.
+    def visitStmt_join(self, ctx:GramParser.Stmt_joinContext):
         return self.visitChildren(ctx)
 
 

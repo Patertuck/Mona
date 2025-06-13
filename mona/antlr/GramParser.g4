@@ -26,6 +26,7 @@ stmt
     | print SEMI           #stmt_print
     | stmt_block SEMI      #stmt_stmt_block
     | SPAWN stmt_block     #stmt_spawn
+    | JOIN SEMI            #stmt_join
 
     ;
 //

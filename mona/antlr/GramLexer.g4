@@ -10,6 +10,7 @@ ROUNDINTOF: 'roundintof';
 CEILINTOF: 'ceilintof';
 SIN: 'sin';
 SPAWN: 'spawn';
+JOIN: 'join';
 WHILE: 'while';
 
 TRUE: 'True';

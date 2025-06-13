@@ -1,8 +1,5 @@
 import os
 import shutil
-import sys
-import sysconfig
-import time
 from typing import Final
 
 from mona import runtime_factory
@@ -16,14 +13,14 @@ from mona import runtime_factory
 # }
 # strlst([1, 2, 9]);
 # """
-with open("mona/demo_programs/programs/matrix_mul.mona", "r", encoding="utf-8") as f:
-    DEMO_SRC_MULTI_THREAD = f.read()
+with open("mona/demo_programs/programs/queue.mona", "r", encoding="utf-8") as f:
+#with open("mona/demo_programs/programs/singleThread.mona", "r", encoding="utf-8") as f:
+#with open("mona/demo_programs/programs/sharedVariable.mona", "r", encoding="utf-8") as f:
+    DEMO_SRC = f.read()
 
-with open("mona/demo_programs/programs/matrix_mul_single.mona", "r", encoding="utf-8") as f:
-    DEMO_SRC_SINGLE_THREAD = f.read()
 
 OUTPUT_DIR: Final[str] = os.path.join(os.getcwd(), "output_dir")
-STEPS: Final[int] = 30
+STEPS: Final[int] = 10
 SNAPNR: Final[int] = 2
 
 
@@ -33,42 +30,47 @@ def main():
         shutil.rmtree(OUTPUT_DIR)
     os.mkdir(OUTPUT_DIR)
 
-    gilDisable()
-   
-    # Timing the multi-threaded execution
-    print("\nRunning multi-threaded version...")
-    start_time = time.time()
-    runtime_factory.run(src=DEMO_SRC_MULTI_THREAD, output_dir=OUTPUT_DIR)
-    multi_thread_time = time.time() - start_time
-    print(f"Multi-threaded execution took {multi_thread_time:.4f} seconds")
+    # Run program.
+    print(">>>>>> EVALUATING PROGRAM")
+    runtime_factory.run(src=DEMO_SRC, output_dir=OUTPUT_DIR)
 
-    # Timing the single-threaded execution
-    print("\nRunning single-threaded version...")
-    start_time = time.time()
-    runtime_factory.run(src=DEMO_SRC_SINGLE_THREAD, output_dir=OUTPUT_DIR)
-    single_thread_time = time.time() - start_time
-    print(f"Single-threaded execution took {single_thread_time:.4f} seconds")
+    print("\n>>>>>> COUNTING PROGRAM EXPRESSIONS")
+    runtime_factory.run_and_count_expressions(src=DEMO_SRC, output_dir=OUTPUT_DIR)
 
-    # Compare the times
-    if multi_thread_time < single_thread_time:
-        print("\nMulti-threaded version is faster!")
-    elif multi_thread_time > single_thread_time:
-        print("\nSingle-threaded version is faster!")
-    else:
-        print("\nBoth versions took the same time.")
+    print("\n>>>>>> RECORDING PROGRAM EXECUTION")
+    runtime_factory.run_and_record(src=DEMO_SRC, output_dir=OUTPUT_DIR, steps=STEPS)
+
+    replay_snapshot_filepath = os.path.join(OUTPUT_DIR, f"{SNAPNR}_snap.pickle")
+    output_replay_snapshot_filepath = os.path.join(OUTPUT_DIR, f"{SNAPNR}_out_snap.pickle")
+    print(f"\n>>>>>> REPLAYING EXECUTION SNAPSHOT '{replay_snapshot_filepath}' into '{output_replay_snapshot_filepath}'")
+    runtime_factory.replay_snapshot(src=DEMO_SRC, snapshot_filename=replay_snapshot_filepath)
+
+    # replay_all_snapshots(src=DEMO_SRC, output_dir=OUTPUT_DIR)
 
 
-def gilDisable():
-    print(f"Python version: {sys.version}")
+# chatgpt generated
+def replay_all_snapshots(src: str, output_dir: str) -> None:
+    print("\n>>>>>> REPLAYING ALL SNAPSHOTS")
+    files = sorted(
+    (
+        f for f in os.listdir(output_dir)
+        if f.endswith("_snap.pickle") and f.split("_")[0].isdigit()
+    ),
+    key=lambda f: int(f.split("_")[0])
 
-    status = sysconfig.get_config_var("Py_GIL_DISABLED")
+    )
 
-    if status is None:
-        print("GIL cannot be disabled")
-    elif status == 0:
-        print("GIL is active")
-    elif status == 1:
-        print("GIL is disabled")
+    for snap_file in files:
+        snap_num = snap_file.split("_")[0]
+        snapshot_path = os.path.join(output_dir, snap_file)
+        output_path = os.path.join(output_dir, f"{snap_num}_out_snap.pickle")
+
+        print(f"\nReplaying: {snapshot_path}")
+        try:
+            runtime_factory.replay_snapshot(src=src, snapshot_filename=snapshot_path)
+        except SystemExit:
+            # Replay mode uses sys.exit() to stop early, so just continue
+            print(f"Finished replay for snapshot {snap_num}")
 
 
 if __name__ == "__main__":

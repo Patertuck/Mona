@@ -2,6 +2,7 @@ from typing import Optional, Final
 
 from mona.interpreter.component.arg_lst import ArgumentList
 from mona.interpreter.component.component import Component
+from mona.interpreter.component.join_stmt import JoinStmt
 from mona.interpreter.component.spawn import Spawn
 from mona.interpreter.component.else_stmt import ElseStmt
 from mona.interpreter.component.elseif_stmt import ElseIfStmt
@@ -438,8 +439,10 @@ class Preprocessor(GramParserVisitor):
         stmt_block: StmtBlock = self.visit(ctx.stmt_block())
         cmp = Spawn(seq_id=self.comp_store.next_seq_id, stmt_block=stmt_block)
         return self._register(cmp)
-
-
+    
+    def visitStmt_join(self, ctx: GramParser.Stmt_joinContext) -> JoinStmt:
+        cmp = JoinStmt(seq_id=self.comp_store.next_seq_id, line=ctx.start.line)
+        return self._register(cmp)
 
     ###########
     # if_stmt #

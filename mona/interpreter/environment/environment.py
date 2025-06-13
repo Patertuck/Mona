@@ -416,11 +416,14 @@ class Environment:
         # Remove matching job
         self._msg_queue.remove_job(target_job)
 
+    def is_replay(self) -> bool:
+        return isinstance(self._exec_mode, ExecModeReplay)
+
 class EvalJob:
     def __init__(self, stmt):
-        self.stmt_type = type(stmt).__name__            # Store class name, like 'PrintLn', 'Spawn', etc.
-        self.seq_id = getattr(stmt, "seq_id", None)      # Get seq_id if it exists
-        self.has_arg_lst = hasattr(stmt, "arg_lst")      # Does this have an arg list?
+        self.stmt_type = type(stmt).__name__            
+        self.seq_id = getattr(stmt, "seq_id", None)      
+        self.has_arg_lst = hasattr(stmt, "arg_lst")      
 
     def __call__(self, env):
         raise RuntimeError("EvalJob is a metadata object, not executable.")
