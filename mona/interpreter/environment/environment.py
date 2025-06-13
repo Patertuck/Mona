@@ -91,7 +91,7 @@ class ExecModeRecord(ExecMode):
 
     def _snap_src(self) -> None:
         if self._src_env is not None:
-            #print("[DEBUG] Snapshot queue contents:")
+            print("[DEBUG] Snapshotting\n")
             #self._src_env.print_all_jobs()
 
             src_env_ref = self._src_env
@@ -149,23 +149,27 @@ class ExecModeReplay(ExecMode):
             pickle.dump(env, df)
 
     def before_execution(self, env: Environment) -> None:
-        # Reset starting point.
-        env.trace_idx = 0
-        # Clear ios before computation.
+        # Reset starting point
+        if isinstance(env.call_trace, list):
+            env.trace_idx = 0
+
+        # Clear output and message queue
         env.clear_io()
-        env.clear_message_queue()  
+
+       
 
     def exec(self, env: Environment) -> None:
         self.run_stmts += 1
         self._curr_steps -= 1
-        # Explain this to me
         if self._curr_steps == 0:
             print(f"[REPLAY] Stopping replay. Snapshotting at seq_id={env.seq_id}, run_stmts={self.run_stmts}")
             self.snapshot(env, self._snap_id)
+            #env.wait_for_threads()
             sys.exit()
 
     def after_execution(self, env: Environment) -> None:
         pass
+
 
 
 class IOLogs:
@@ -281,19 +285,27 @@ class Environment:
 
     @property
     def seq_id(self) -> int:
+        if isinstance(self.call_trace, dict):
+            trace_list = self.call_trace.get(self.trace_idx, [])
+            return trace_list[-1] if trace_list else -1
         return self.call_trace[self.trace_idx]
+
 
     @seq_id.setter
     def seq_id(self, seq_id: int) -> None:
-        next_legal_trace = len(self.call_trace) - 1
-        if self.trace_idx != len(self.call_trace) - 1:
-            raise IllegalTraceUpdateException(
-                next_legal_trace=next_legal_trace,
-                target_trace_idx=self.trace_idx,
-                trace_seq_id=self.call_trace[self.trace_idx],
-                overwrite_seq_id=seq_id
-            )
-        self.call_trace[self.trace_idx] = seq_id
+        if isinstance(self.call_trace, dict):
+            trace_list = self.call_trace[self.trace_idx]
+            trace_list.append(seq_id)
+        else:
+            next_legal_trace = len(self.call_trace) - 1
+            if self.trace_idx != next_legal_trace:
+                raise IllegalTraceUpdateException(
+                    next_legal_trace=next_legal_trace,
+                    target_trace_idx=self.trace_idx,
+                    trace_seq_id=self.call_trace[self.trace_idx],
+                    overwrite_seq_id=seq_id
+                )
+            self.call_trace[self.trace_idx] = seq_id
 
     def _rm_mem_scope(self):
         if self.trace_idx in self._mem:
@@ -353,17 +365,31 @@ class Environment:
         return var_value
 
     def add_trace(self, seq_id: int) -> None:
-        if not self.next_trace():
-            self.call_trace.append(seq_id)
-        self.trace_idx += 1
+        if isinstance(self.call_trace, dict):
+            if self.trace_idx not in self.call_trace:
+                self.call_trace[self.trace_idx] = []
+            self.call_trace[self.trace_idx].append(seq_id)
+        else:
+            if not self.next_trace():
+                self.call_trace.append(seq_id)
+            self.trace_idx += 1
+
 
     def rm_trace(self) -> None:
-        if not self.next_trace():
-            self._rm_mem_scope()
-            self.call_trace.pop()
-        self.trace_idx -= 1
+        if isinstance(self.call_trace, dict):
+            if self.call_trace[self.trace_idx]:
+                self.call_trace[self.trace_idx].pop()
+        else:
+            if not self.next_trace():
+                self._rm_mem_scope()
+                self.call_trace.pop()
+            self.trace_idx -= 1
+
 
     def next_trace(self) -> bool:
+        if isinstance(self.call_trace, dict):
+            # No next trace in dict-based (threaded) traces
+            return False
         last_idx = len(self.call_trace) - 1
         return last_idx > self.trace_idx
 
@@ -375,8 +401,8 @@ class Environment:
 
     def after_execution(self) -> None:
         self._exec_mode.after_execution(env=self)
-        print("Threads:")
-        print(self._threads)
+        #print("Threads:")
+        #print(self._threads)
         for t in self._threads:
             t.join()
 
@@ -421,9 +447,14 @@ class Environment:
 
 class EvalJob:
     def __init__(self, stmt):
-        self.stmt_type = type(stmt).__name__            
-        self.seq_id = getattr(stmt, "seq_id", None)      
-        self.has_arg_lst = hasattr(stmt, "arg_lst")      
+        self.stmt_type = type(stmt).__name__
+        self.seq_id = getattr(stmt, "seq_id", None)
+        self.has_arg_lst = hasattr(stmt, "arg_lst")
+
+        # For Spawn jobs
+        self.stmt_block = getattr(stmt, "stmt_block", None)
+        self.thread_id = getattr(stmt, "thread_id", None)
+        self.thread_trace = getattr(stmt, "thread_trace", None)  # ✅ ADD THIS LINE
 
     def __call__(self, env):
         raise RuntimeError("EvalJob is a metadata object, not executable.")

@@ -1,22 +1,8 @@
-var done = 0;
+println("after join");
+
 spawn{
-
-    println("worker started");
-    var i = 0;
-    while (i < 10) {  // Simulated delay
-        i = i + 1;
-        println(i);
-    }
-    println("worker finished");
-
-println("before join");
-
-
 println("after join");
 println("done value:");
 }
-println(done);
 
 
-[2, 8: {}]
-if dict multithread

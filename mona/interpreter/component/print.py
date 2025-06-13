@@ -14,6 +14,10 @@ class Print(Component):
         super()._eval_body(env=env)
         self.arg_lst.eval(env=env)
 
+        print(f"[DEBUG] Inside Print._eval_body for seq_id={self.seq_id}")
+        print("[DEBUG] Stack before building print:", env.stack)
+
+
         print_elems = list()
         for i, _ in enumerate(self.arg_lst.exprs):
             tmp = env.mem_var(f"arg_{i}", self.seq_id)
@@ -21,12 +25,16 @@ class Print(Component):
                 tmp = str(tmp)
             print_elems.append(tmp)
         string = "".join(reversed(print_elems))
+        #print(string, end="", flush=True)
         print(string, end="")
+
         env.add_io_out(string)
 
 
 class PrintLn(Print):
     def _eval_body(self, env: Environment) -> None:
         super()._eval_body(env=env)
+        #print("\n", end="", flush=True)  #
         print("\n", end="")
+
         env.add_io_out("\n")
