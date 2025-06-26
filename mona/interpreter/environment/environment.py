@@ -454,7 +454,7 @@ class EvalJob:
         # For Spawn jobs
         self.stmt_block = getattr(stmt, "stmt_block", None)
         self.thread_id = getattr(stmt, "thread_id", None)
-        self.thread_trace = getattr(stmt, "thread_trace", None)  # ✅ ADD THIS LINE
+        self.thread_trace = getattr(stmt, "thread_trace", None) 
 
     def __call__(self, env):
         raise RuntimeError("EvalJob is a metadata object, not executable.")

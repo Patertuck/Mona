@@ -1,8 +1,12 @@
-println("after join");
-
+   println("before thread");
 spawn{
-println("after join");
-println("done value:");
+    println("1");
+    println("2");
+    println("3");
 }
-
+spawn{
+ println("Other Thread");
+}
+join;
+println("after thread");
 
