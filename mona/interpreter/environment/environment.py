@@ -92,6 +92,7 @@ class ExecModeRecord(ExecMode):
     def _snap_src(self) -> None:
         if self._src_env is not None:
             print("[DEBUG] Snapshotting\n")
+            self._src_env._msg_queue.print_all()
             #self._src_env.print_all_jobs()
 
             src_env_ref = self._src_env
@@ -224,38 +225,47 @@ class IllegalTraceUpdateException(RuntimeError):
         self.trace_seq_id = trace_seq_id
         self.overwrite_seq_id = overwrite_seq_id
 
-class MessageQueue:
-    def __init__(self):
-        self._queue = deque()
+class UuidQueue:
+    """FIFO that stores only thread-ids (UUID strings)."""
 
-    def enqueue(self, value: Any) -> None:
-        self._queue.append(value)
+    def __init__(self) -> None:
+        self._queue: deque[str] = deque()
 
-    def dequeue(self) -> Optional[Any]:
-        if self._queue:
-            return self._queue.popleft()
-        return None
-    
-    def remove_job(self, job: EvalJob) -> None:
+    # ---------- mutation ----------
+    def enqueue(self, thread_id: str) -> None:
+        self._queue.append(thread_id)
+
+    def dequeue(self) -> str | None:
+        return self._queue.popleft() if self._queue else None
+
+    def remove(self, thread_id: str) -> None:
         try:
-            # print(f"Removing job: {job}")
-            # print(f"MessageQueue: {self._queue}")
-
-            self._queue.remove(job)
+            self._queue.remove(thread_id)
         except ValueError:
-            print(f"[WARNING] Tried to remove non-existing job: {job}")
+            pass                        # already gone – fine for us
 
-    def is_empty(self) -> bool:
-        return not self._queue
+    def clear(self) -> None:
+        self._queue.clear()
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._queue)
 
+    def __repr__(self) -> str:
+        return f"<UuidQueue {list(self._queue)}>"
+    
+    def print_all(self) -> None:
+        if not self._queue:
+            print("(queue is empty)")
+            return
+
+        print("UuidQueue contents:")
+        for idx, tid in enumerate(self._queue, start=1):
+            print(f"  {idx}. {tid}")
 
 class Environment:
     _mem: OrderedDict[int, OrderedDict[str, Any]]
     stack: list[Any]
-    _msg_queue: MessageQueue
+    _msg_queue: UuidQueue
     _threads: list[threading.Thread]
     
     trace_idx: int
@@ -270,8 +280,9 @@ class Environment:
         self.call_trace = [-1]
 
         self._mem = OrderedDict()
-        self._msg_queue = MessageQueue()
+        self._msg_queue = UuidQueue()
         self._threads = []
+        self._thread_id = "main"
         self.stack = list()
 
         self._io_logs = IOLogs()
@@ -405,6 +416,7 @@ class Environment:
         return last_idx > self.trace_idx
 
     def after_statement(self) -> None:
+        self._ticket_current_thread()    
         self._exec_mode.exec(env=self)
 
     def before_execution(self) -> None:
@@ -429,9 +441,9 @@ class Environment:
     def clear_message_queue(self) -> None:
         self._msg_queue._queue.clear()    
 
-    def enqueue_job(self, job: Callable[[], None]) -> None:
+    def enqueue_job(self, string: id) -> None:
         #print(f"[DEBUG] Enqueuing job: {job}")
-        self._msg_queue.enqueue(job)
+        self._msg_queue.enqueue(self.tread_id)
         #print(f"[DEBGUG] Length of queue: {len(self._msg_queue)}")
 
     def print_all_jobs(self) -> None:
@@ -442,19 +454,21 @@ class Environment:
     def thread_started(self, spawn_obj: "Spawn"):
         from mona.interpreter.component.spawn import Spawn
         eval_job = EvalJob(spawn_obj)
-        self.enqueue_job(eval_job)
+        self.enqueue_job(self.thread_id)
         
 
 
-    def thread_done(self, spawn_obj: "Spawn"):
-        from mona.interpreter.component.spawn import Spawn
+    def thread_done(self, id: str):
         
-        target_job = EvalJob(spawn_obj)
-        # Remove matching job
-        self._msg_queue.remove_job(target_job)
+        self._msg_queue.remove(id)
 
     def is_replay(self) -> bool:
         return isinstance(self._exec_mode, ExecModeReplay)
+    
+    def _ticket_current_thread(self) -> None:              
+        if isinstance(self._exec_mode, ExecModeRecord):
+            tid = getattr(self, "_thread_id", "main")
+            self._msg_queue.enqueue(tid)  # UuidQueue.append
 
 class EvalJob:
     def __init__(self, stmt):

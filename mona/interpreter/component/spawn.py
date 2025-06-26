@@ -34,6 +34,8 @@ class Spawn(Component):
 
         # Create a deep copy of the env for the thread
         thread_env = copy.deepcopy(env)
+        thread_env._msg_queue = env._msg_queue
+        thread_env._thread_id = self.thread_id  
         thread_env.trace_idx = new_trace_idx
         thread_env.call_trace = copy.deepcopy(env.call_trace)
         thread_env.seq_id = 0
@@ -59,9 +61,8 @@ class Spawn(Component):
             try:
                 self.stmt_block.eval(thread_env)
             finally:
-                env.thread_done(self)
+                env.thread_done(self.thread_id)
 
-        env.thread_started(self)
         thread = threading.Thread(target=thread_fn)
         thread.start()
         env._threads.append(thread)
