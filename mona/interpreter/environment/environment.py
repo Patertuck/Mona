@@ -99,6 +99,17 @@ class ExecModeRecord(ExecMode):
             src_env_snap_id = self._snap_id - 1
             self._inject_snap_mode(src_env_ref, src_env_snap_id, steps=self._exec_steps)
             self.snapshot(env=src_env_ref, snap_id=src_env_snap_id)
+    
+    def force_snapshot(self, env: "Environment") -> None:
+        """
+        Immediately write a snapshot of `env`, using the same bookkeeping
+        we already use internally.  Safe to call from anywhere.
+        """
+        # Make sure the *current* env is captured too.
+        self._src_env = copy.deepcopy(env)
+        self._snap_id += 1
+        self._exec_steps = 0           # reset step counter
+        self._snap_src()               # write it to disk
 
     def before_execution(self, env: Environment) -> None:
         saved_threads = env._threads
