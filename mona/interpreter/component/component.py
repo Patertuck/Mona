@@ -3,6 +3,7 @@ from __future__ import annotations
 import abc
 import pickle
 import sys
+import time
 from typing import Final
 
 DEBUG =  True
@@ -45,7 +46,11 @@ class Component(abc.ABC):
         return decorated_components
 
     def eval(self, env: Environment) -> None:
+        print(f"Current env id:{env._thread_id}, seq_id:{env.seq_id}, queuehead:{env._queue_head()}, self.seq_id:{self.seq_id}")
+        print(f"Current env call trace:", env.call_trace)
         # Don't execute this code point is env point to the next, as it already was.
+        if env.is_replay():
+            env._schedule_next(env)
         if self.seq_id <= env.seq_id:
             if DEBUG:
                 print(f"[DEBUG] [prun] {self._log_exec_point(env)} -> {self}")
@@ -62,6 +67,7 @@ class Component(abc.ABC):
         env.seq_id = self.seq_id
 
         env.after_statement()
+        env._finished_node()
 
     @abc.abstractmethod
     def _eval_body(self, env: Environment) -> None:

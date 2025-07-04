@@ -92,15 +92,15 @@ class ExecModeRecord(ExecMode):
     def _snap_src(self) -> None:
         if self._src_env is not None:
             print("[DEBUG] Snapshotting\n")
-            self._src_env._msg_queue.print_all()
-            #self._src_env.print_all_jobs()
 
             src_env_ref = self._src_env
             src_env_ref._threads = []
             src_env_snap_id = self._snap_id - 1
             self._inject_snap_mode(src_env_ref, src_env_snap_id, steps=self._exec_steps)
-            self.snapshot(env=src_env_ref, snap_id=src_env_snap_id)
-    
+            #self.snapshot(env=src_env_ref, snap_id=src_env_snap_id)
+            self._dump_and_verify(src_env_ref, src_env_snap_id)
+
+    # check this again, not sure if correct
     def force_snapshot(self, env: "Environment") -> None:
         """
         Immediately write a snapshot of `env`, using the same bookkeeping
@@ -122,16 +122,41 @@ class ExecModeRecord(ExecMode):
     def exec(self, env: Environment) -> None:
         self._exec_steps += 1
         if self._exec_steps == self._steps:
-       
-            #env.print_all_jobs()
-            self._snap_src()
+            env._msg_queue.print_all()
             
+            self._snap_src()
             self._src_env = copy.deepcopy(env)
             self._snap_id += 1
             self._exec_steps: int = 0
 
             # Clear ios for next trace.
             env.clear_io()
+            env.clear_message_queue()
+    
+    # chatgpt generated
+    def _dump_and_verify(self, env: "Environment", snap_id: int) -> None:
+        """Write the snapshot and immediately load it back to verify.
+           Runs only in ExecModeRecord."""
+        filename = os.path.join(self._dump_dir, f"{snap_id}_snap.pickle")
+
+        # --- dump ---
+        with open(filename, "wb") as df:
+            pickle.dump(env, df)
+
+        # --- load right back ---
+        with open(filename, "rb") as df:
+            restored_env: Environment = pickle.load(df)
+
+        # --- compare / log ---
+        if env._msg_queue._queue != restored_env._msg_queue._queue:
+            print(
+                f"[WARN] Queue mismatch after snapshot {snap_id} "
+                f"(live={list(env._msg_queue._queue)}, "
+                f"restored={list(restored_env._msg_queue._queue)})"
+            )
+        else:
+            print(f"[OK]  Snapshot {snap_id} queue verified.")
+    # --------------------------------------------
 
     def after_execution(self, env: Environment) -> None:
         # Persist the previous state, with steps to reach this last one.
@@ -162,18 +187,18 @@ class ExecModeReplay(ExecMode):
 
     def before_execution(self, env: Environment) -> None:
         # Reset starting point
-        if isinstance(env.call_trace, list):
-            env.trace_idx = 0
-
-        # Clear output and message queue
+        print("\n>>>> MESSAGE-QUEUE AT REPLAY START")
+        env._msg_queue.print_all()   
+        print(f"[REPLAY] thread_id={env._thread_id}  queue_head={env._queue_head()}")
+        
+        env.trace_idx = 0
         env.clear_io()
-
-       
 
     def exec(self, env: Environment) -> None:
         self.run_stmts += 1
         self._curr_steps -= 1
-        if self._curr_steps == 0:
+        assert self._curr_steps >= -10, "Replay over-ran by >10 statements – probably a trace divergence"
+        if self._curr_steps <= 0:
             print(f"[REPLAY] Stopping replay. Snapshotting at seq_id={env.seq_id}, run_stmts={self.run_stmts}")
             self.snapshot(env, self._snap_id)
             #env.wait_for_threads()
@@ -231,18 +256,21 @@ class UuidQueue:
     def __init__(self) -> None:
         self._queue: deque[str] = deque()
 
-    # ---------- mutation ----------
     def enqueue(self, thread_id: str) -> None:
         self._queue.append(thread_id)
 
     def dequeue(self) -> str | None:
-        return self._queue.popleft() if self._queue else None
+        if self._queue:
+            tid = self._queue.popleft()
+            print(f"[DEBUG] Dequeued thread id: {tid}")
+            return tid
+        return None
 
     def remove(self, thread_id: str) -> None:
         try:
             self._queue.remove(thread_id)
         except ValueError:
-            pass                        # already gone – fine for us
+            pass                        
 
     def clear(self) -> None:
         self._queue.clear()
@@ -282,7 +310,7 @@ class Environment:
         self._mem = OrderedDict()
         self._msg_queue = UuidQueue()
         self._threads = []
-        self._thread_id = "main"
+        self._thread_id = 0
         self.stack = list()
 
         self._io_logs = IOLogs()
@@ -416,8 +444,7 @@ class Environment:
         return last_idx > self.trace_idx
 
     def after_statement(self) -> None:
-        self._ticket_current_thread()    
-        self._exec_mode.exec(env=self)
+        self._exec_mode.exec(self)
 
     def before_execution(self) -> None:
         self._exec_mode.before_execution(env=self)
@@ -439,24 +466,7 @@ class Environment:
         self._io_logs.clear()
 
     def clear_message_queue(self) -> None:
-        self._msg_queue._queue.clear()    
-
-    def enqueue_job(self, string: id) -> None:
-        #print(f"[DEBUG] Enqueuing job: {job}")
-        self._msg_queue.enqueue(self.tread_id)
-        #print(f"[DEBGUG] Length of queue: {len(self._msg_queue)}")
-
-    def print_all_jobs(self) -> None:
-        print(f"Current jobs in the queue (length = {len(self._msg_queue)}) :")
-        for job in list(self._msg_queue._queue):
-            print(job)
-
-    def thread_started(self, spawn_obj: "Spawn"):
-        from mona.interpreter.component.spawn import Spawn
-        eval_job = EvalJob(spawn_obj)
-        self.enqueue_job(self.thread_id)
-        
-
+        self._msg_queue._queue.clear()      
 
     def thread_done(self, id: str):
         
@@ -465,10 +475,26 @@ class Environment:
     def is_replay(self) -> bool:
         return isinstance(self._exec_mode, ExecModeReplay)
     
-    def _ticket_current_thread(self) -> None:              
+    def _queue_head(self) -> str | None:              
+        return self._msg_queue._queue[0] if self._msg_queue else None
+
+    def _can_run_now(self) -> bool:                     
+        return not self.is_replay() or self._queue_head() == self._thread_id
+
+    def _finished_node(self) -> None:
         if isinstance(self._exec_mode, ExecModeRecord):
-            tid = getattr(self, "_thread_id", "main")
+            tid = getattr(self, "_thread_id")
             self._msg_queue.enqueue(tid)  # UuidQueue.append
+        return
+
+    def _schedule_next(self, env: "Environment") -> None:                          
+
+        tid = env._msg_queue.dequeue()        
+        if tid is None:
+            print ("empptyyyy")
+
+        env._thread_id = tid             
+
 
 class EvalJob:
     def __init__(self, stmt):
