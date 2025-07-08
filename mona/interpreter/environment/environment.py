@@ -89,13 +89,14 @@ class ExecModeRecord(ExecMode):
             steps=steps, snap_id=snap_id, dump_dir=self._dump_dir
         )
 
-    def _snap_src(self) -> None:
+    def _snap_src(self, env: Environment) -> None:
         if self._src_env is not None:
             print("[DEBUG] Snapshotting\n")
 
             src_env_ref = self._src_env
             src_env_ref._threads = []
             src_env_snap_id = self._snap_id - 1
+            src_env_ref._msg_queue = copy.deepcopy(env._msg_queue)
             self._inject_snap_mode(src_env_ref, src_env_snap_id, steps=self._exec_steps)
             #self.snapshot(env=src_env_ref, snap_id=src_env_snap_id)
             self._dump_and_verify(src_env_ref, src_env_snap_id)
@@ -110,7 +111,7 @@ class ExecModeRecord(ExecMode):
         self._src_env = copy.deepcopy(env)
         self._snap_id += 1
         self._exec_steps = 0           # reset step counter
-        self._snap_src()               # write it to disk
+        self._snap_src(env)               # write it to disk
 
     def before_execution(self, env: Environment) -> None:
         saved_threads = env._threads
@@ -124,7 +125,7 @@ class ExecModeRecord(ExecMode):
         if self._exec_steps == self._steps:
             env._msg_queue.print_all()
             
-            self._snap_src()
+            self._snap_src(env)
             self._src_env = copy.deepcopy(env)
             self._snap_id += 1
             self._exec_steps: int = 0
@@ -160,14 +161,14 @@ class ExecModeRecord(ExecMode):
 
     def after_execution(self, env: Environment) -> None:
         # Persist the previous state, with steps to reach this last one.
-        self._snap_src()
+        self._snap_src(env)
         # Persist final env if steps were run from source.
         if self._exec_steps > 0:
             # Persist this last one, with zero steps to reach itself.
             self._src_env = copy.deepcopy(env)
             self._snap_id += 1
             self._exec_steps = 0
-            self._snap_src()
+            self._snap_src(env)
 
             # Clear ios for next (None) trace.
             env.clear_io()
@@ -198,7 +199,7 @@ class ExecModeReplay(ExecMode):
         self.run_stmts += 1
         self._curr_steps -= 1
         assert self._curr_steps >= -10, "Replay over-ran by >10 statements – probably a trace divergence"
-        if self._curr_steps <= 0:
+        if self._curr_steps == 0:
             print(f"[REPLAY] Stopping replay. Snapshotting at seq_id={env.seq_id}, run_stmts={self.run_stmts}")
             self.snapshot(env, self._snap_id)
             #env.wait_for_threads()
@@ -257,14 +258,21 @@ class UuidQueue:
         self._queue: deque[str] = deque()
 
     def enqueue(self, thread_id: str) -> None:
+        print ("Enqueuing:")
         self._queue.append(thread_id)
 
     def dequeue(self) -> str | None:
         if self._queue:
             tid = self._queue.popleft()
+            self.print_all()
             print(f"[DEBUG] Dequeued thread id: {tid}")
             return tid
         return None
+    
+    def enqueue_at_start(self, tid:str) -> None:
+        if self._queue:
+            print("adding to queue")
+            self._queue.appendleft(tid)
 
     def remove(self, thread_id: str) -> None:
         try:
@@ -306,6 +314,7 @@ class Environment:
     def __init__(self, exec_mode: ExecMode):
         self.trace_idx = 0
         self.call_trace = [-1]
+        self._amt_requeues: int = 0
 
         self._mem = OrderedDict()
         self._msg_queue = UuidQueue()
@@ -453,8 +462,8 @@ class Environment:
         self._exec_mode.after_execution(env=self)
         #print("Threads:")
         #print(self._threads)
-        for t in self._threads:
-            t.join()
+        #for t in self._threads:
+        #    t.join()
 
     def add_io_in(self, value: Any) -> None:
         self._io_logs.add_io_in(value=value)
@@ -481,18 +490,18 @@ class Environment:
     def _can_run_now(self) -> bool:                     
         return not self.is_replay() or self._queue_head() == self._thread_id
 
-    def _finished_node(self) -> None:
+    def _finished_node(self, tid: int) -> None:
         if isinstance(self._exec_mode, ExecModeRecord):
-            tid = getattr(self, "_thread_id")
             self._msg_queue.enqueue(tid)  # UuidQueue.append
         return
-
+    
     def _schedule_next(self, env: "Environment") -> None:                          
 
         tid = env._msg_queue.dequeue()        
         if tid is None:
-            print ("empptyyyy")
+            print ("Empty Queue")
 
+        self._amt_requeues += 1
         env._thread_id = tid             
 
 

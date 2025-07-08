@@ -31,11 +31,11 @@ def main():
     os.mkdir(OUTPUT_DIR)
 
     # Run program.
-    print(">>>>>> EVALUATING PROGRAM")
-    runtime_factory.run(src=DEMO_SRC, output_dir=OUTPUT_DIR)
+    # print(">>>>>> EVALUATING PROGRAM")
+    # runtime_factory.run(src=DEMO_SRC, output_dir=OUTPUT_DIR)
 
-    print("\n>>>>>> COUNTING PROGRAM EXPRESSIONS")
-    runtime_factory.run_and_count_expressions(src=DEMO_SRC, output_dir=OUTPUT_DIR)
+    # print("\n>>>>>> COUNTING PROGRAM EXPRESSIONS")
+    # runtime_factory.run_and_count_expressions(src=DEMO_SRC, output_dir=OUTPUT_DIR)
 
     print("\n>>>>>> RECORDING PROGRAM EXECUTION")
     runtime_factory.run_and_record(src=DEMO_SRC, output_dir=OUTPUT_DIR, steps=STEPS)
