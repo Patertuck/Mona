@@ -3,6 +3,7 @@ import shutil
 from typing import Final
 
 from mona import runtime_factory
+from mona.demo_programs.demo_runner import test_record_replay
 
 # DEMO_SRC: Final[str] = """
 # decl strlst(lst) {

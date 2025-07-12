@@ -20,7 +20,7 @@ def run_env() -> Environment:
 
 
 def record_env() -> Environment:
-    return Environment(exec_mode=ExecModeRecord(steps=128, dump_dir="dump_dir/"))
+    return Environment(exec_mode=ExecModeRecord(steps=5, dump_dir="dump_dir/"))
 
 
 def count_env() -> Environment:

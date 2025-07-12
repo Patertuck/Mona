@@ -4,7 +4,7 @@ from deepdiff import DeepDiff
 
 class EnvironmentComparer:
     def __init__(self):
-        self.excluded_paths = ["_exec_mode"]
+        self.excluded_paths = ["_exec_mode", "_msg_queue", "_threads", "_amt_requeues"]
 
     def loadEnvironment(self, path):
         with open(path, "rb") as df:
