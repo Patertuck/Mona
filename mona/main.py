@@ -21,7 +21,7 @@ with open("mona/demo_programs/programs/queue.mona", "r", encoding="utf-8") as f:
 
 
 OUTPUT_DIR: Final[str] = os.path.join(os.getcwd(), "output_dir")
-STEPS: Final[int] = 5
+STEPS: Final[int] = 3
 SNAPNR: Final[int] = 2
 
 
@@ -75,4 +75,5 @@ def replay_all_snapshots(src: str, output_dir: str) -> None:
 
 
 if __name__ == "__main__":
+    #test_record_replay(r"C:\Users\patri\Desktop\UZH Informatik\Bachelorarbeit\Mona\mona\demo_programs\programs\queue.mona")
     main()

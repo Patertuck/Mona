@@ -22,8 +22,8 @@ class Spawn(Component):
         if not isinstance(env._exec_mode, ExecModeReplay):
             env.seq_id = self.seq_id 
         
-        if isinstance(env._exec_mode, ExecModeRecord):
-            env._exec_mode.force_snapshot(env)
+        # if isinstance(env._exec_mode, ExecModeRecord):
+        #     env._exec_mode.force_snapshot(env)
 
         new_trace_idx = str(uuid.uuid4())
 

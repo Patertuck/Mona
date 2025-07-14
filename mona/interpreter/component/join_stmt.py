@@ -12,8 +12,8 @@ class JoinStmt(Component):
         else:
             env.seq_id = self.seq_id
 
-        if isinstance(env._exec_mode, ExecModeRecord):
-            env._exec_mode.force_snapshot(env)
+        # if isinstance(env._exec_mode, ExecModeRecord):
+        #     env._exec_mode.force_snapshot(env)
 
         env.wait_for_threads()
 
