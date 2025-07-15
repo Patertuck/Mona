@@ -24,7 +24,6 @@ class ExecMode(abc.ABC):
         self._dump_dir = dump_dir
 
     def snapshot(self, env: Environment, snap_id: Optional[int]) -> None:
-        #print(f"[DEBUG] Snapshotting with {len(env._msg_queue)} jobs")
         filename: str = os.path.join(self._dump_dir, f"{snap_id}_snap.pickle")
         with open(filename, "wb") as df:
             pickle.dump(env, df)
@@ -76,6 +75,9 @@ class ExecModeStmtCount(ExecMode):
 
 
 class ExecModeRecord(ExecMode):
+    _global_snap_id = -1
+    _snap_lock = threading.Lock()
+    
     def __init__(self, steps: int, dump_dir: str = f"dump_{uuid.uuid4()}/"):
         super().__init__(dump_dir=dump_dir)
         self._steps: Final[int] = steps
@@ -93,15 +95,22 @@ class ExecModeRecord(ExecMode):
     def _snap_src(self, env: Environment) -> None:
         if self._src_env is not None:
             with self._snapshot_lock:
-                print(f"[DEBUG] Snapshotting snap_id={self._snap_id}\n")
 
                 src_env_ref = self._src_env
                 src_env_ref._threads = []
-                src_env_snap_id = self._snap_id - 1
+                src_env_ref._msg_queue = env._msg_queue
+                src_env_snap_id = ExecModeRecord.next_global_snap_id()
                 src_env_ref._msg_queue = copy.deepcopy(env._msg_queue)
                 self._inject_snap_mode(src_env_ref, src_env_snap_id, steps=self._exec_steps)
-                #self.snapshot(env=src_env_ref, snap_id=src_env_snap_id)
-                self._dump_and_verify(src_env_ref, src_env_snap_id)
+                print(f"[DEBUG] Snapshotting snap_id={src_env_snap_id}\n")
+                self.snapshot(env=src_env_ref, snap_id=src_env_snap_id)
+                #self._dump_and_verify(src_env_ref, src_env_snap_id)
+    
+    @classmethod
+    def next_global_snap_id(cls) -> int:
+        with cls._snap_lock:
+            cls._global_snap_id += 1
+            return cls._global_snap_id
 
     # check this again, not sure if correct
     def force_snapshot(self, env: "Environment") -> None:
@@ -111,7 +120,6 @@ class ExecModeRecord(ExecMode):
         """
         # Make sure the *current* env is captured too.
         self._src_env = copy.deepcopy(env)
-        self._snap_id += 1
         self._exec_steps = 0           # reset step counter
         self._snap_src(env)               # write it to disk
 
@@ -120,7 +128,6 @@ class ExecModeRecord(ExecMode):
         env._threads = []
         self._src_env = copy.deepcopy(env)
         env._threads = saved_threads
-        self._snap_id += 1
 
     def exec(self, env: Environment) -> None:
         self._exec_steps += 1
@@ -157,7 +164,6 @@ class ExecModeRecord(ExecMode):
         if self._exec_steps > 0:
             # Persist this last one, with zero steps to reach itself.
             self._src_env = copy.deepcopy(env)
-            self._snap_id += 1
             self._exec_steps = 0
             self._snap_src(env)
 
@@ -179,7 +185,6 @@ class ExecModeReplay(ExecMode):
     def __init__(self, steps: int, snap_id: int, dump_dir: str):
         super().__init__(dump_dir=dump_dir)
         self._curr_steps: int = steps
-        self._snap_id = snap_id
         self.run_stmts: int = 0
 
     def snapshot(self, env: Environment, snap_id: Optional[int]) -> None:
@@ -197,18 +202,21 @@ class ExecModeReplay(ExecMode):
         env.clear_io()
 
     def exec(self, env: Environment) -> None:
-        if not env._msg_queue._queue:
-            print(f"[REPLAY] Queue is empty. Stopping replay. Snapshotting at seq_id={env.seq_id}, run_stmts={self.run_stmts}")
-            self.snapshot(env, self._snap_id)
-            sys.exit()
-
         self.run_stmts += 1
         self._curr_steps -= 1
-        assert self._curr_steps >= -10, "Replay over-ran by >10 statements – probably a trace divergence"
+        assert self._curr_steps >= -10, "Replay over-ran by >10 statements – possible trace divergence."
 
+        if not env._msg_queue._queue:
+            print(f"[REPLAY] Queue is empty. Stopping replay. Snapshotting at seq_id={env.seq_id}, run_stmts={self.run_stmts}")
+            snap_id = ExecModeRecord.next_global_snap_id()
+            self.snapshot(env, snap_id)
+            sys.exit()
+
+        # probably can remove
         if self._curr_steps == 0:
             print(f"[REPLAY] Stopping replay. Snapshotting at seq_id={env.seq_id}, run_stmts={self.run_stmts}")
-            self.snapshot(env, self._snap_id)
+            snap_id = ExecModeRecord.next_global_snap_id()
+            self.snapshot(env, snap_id)
             sys.exit()
 
 
@@ -386,15 +394,12 @@ class Environment:
         for thread in self._threads:
             thread.join()
 
-
-
     @property
     def seq_id(self) -> int:
         if isinstance(self.call_trace, dict):
             trace_list = self.call_trace.get(self.trace_idx, [])
             return trace_list[-1] if trace_list else -1
         return self.call_trace[self.trace_idx]
-
 
     @seq_id.setter
     def seq_id(self, seq_id: int) -> None:
@@ -479,7 +484,6 @@ class Environment:
                 self.call_trace.append(seq_id)
             self.trace_idx += 1
 
-
     def rm_trace(self) -> None:
         if isinstance(self.call_trace, dict):
             if self.call_trace[self.trace_idx]:
@@ -489,7 +493,6 @@ class Environment:
                 self._rm_mem_scope()
                 self.call_trace.pop()
             self.trace_idx -= 1
-
 
     def next_trace(self) -> bool:
         if isinstance(self.call_trace, dict):
@@ -552,39 +555,3 @@ class Environment:
 
         self._amt_requeues += 1
         env._thread_id = tid             
-
-
-class EvalJob:
-    def __init__(self, stmt):
-        self.stmt_type = type(stmt).__name__
-        self.seq_id = getattr(stmt, "seq_id", None)
-        self.has_arg_lst = hasattr(stmt, "arg_lst")
-
-        # For Spawn jobs
-        self.stmt_block = getattr(stmt, "stmt_block", None)
-        self.thread_id = getattr(stmt, "thread_id", None)
-        self.thread_trace = getattr(stmt, "thread_trace", None) 
-
-    def __call__(self, env):
-        raise RuntimeError("EvalJob is a metadata object, not executable.")
-
-    def __repr__(self):
-        info = {"seq_id": self.seq_id}
-        if self.has_arg_lst:
-            info["arg_lst"] = "(ArgumentList)"
-        return f"<EvalJob for ({self.stmt_type} | {info})>"
-    
-    def __eq__(self, other):
-        if not isinstance(other, EvalJob):
-            return NotImplemented
-        return self.stmt_type == other.stmt_type and self.seq_id == other.seq_id
-
-    def __hash__(self):
-        return hash((self.stmt_type, self.seq_id))
-
-    def to_dict(self):
-        return {
-            "stmt_type": self.stmt_type,
-            "seq_id": self.seq_id,
-            "has_arg_lst": self.has_arg_lst,
-        }

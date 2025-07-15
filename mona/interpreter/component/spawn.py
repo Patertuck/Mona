@@ -47,6 +47,8 @@ class Spawn(Component):
                 steps=env._exec_mode._steps,
                 dump_dir=env._exec_mode._dump_dir,
             )
+            thread_env._exec_mode._src_env = copy.deepcopy(thread_env)
+            
         elif isinstance(env._exec_mode, ExecModeReplay):
             thread_env._exec_mode = ExecModeReplay(
                 steps=env._exec_mode._curr_steps,
