@@ -46,9 +46,14 @@ class Component(abc.ABC):
         return decorated_components
 
     def eval(self, env: Environment) -> None:
-        from mona.interpreter.component.program import Program  
-        print(f"Current env id:{env._thread_id}, seq_id:{env.seq_id}, queuehead:{env._queue_head()}, self.seq_id:{self.seq_id}")
-        print(f"Current env call trace:", env.call_trace)
+        from mona.interpreter.component.program import Program 
+
+        if env.is_replay() and not env._msg_queue._queue:
+            print("[DEBUG]queue is empty — skipping eval")
+            return 
+        
+        #print(f"Current env id:{env._thread_id}, env_seq_id:{env.seq_id}, queuehead:{env._queue_head()}, self.seq_id:{self.seq_id}")
+        #print(f"Current env call trace:", env.call_trace)
         # Don't execute this code point is env point to the next, as it already was.
         if self.seq_id <= env.seq_id:
             if DEBUG:
@@ -65,12 +70,13 @@ class Component(abc.ABC):
         if DEBUG:
             print(f"[DEBUG] [eval] {self._log_exec_point(env)} -> {self}")
 
-        if not isinstance(self, Program):
-            env._finished_node(env._thread_id)
             
         # Run sub-logic.
         self._eval_body(env)
 
+        if not isinstance(self, Program):
+            env._finished_node(env._thread_id)
+            
         # Set the code point to the next (all children logic had smaller indexes).
         env.seq_id = self.seq_id
 

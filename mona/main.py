@@ -21,7 +21,7 @@ with open("mona/demo_programs/programs/queue.mona", "r", encoding="utf-8") as f:
 
 
 OUTPUT_DIR: Final[str] = os.path.join(os.getcwd(), "output_dir")
-STEPS: Final[int] = 3
+STEPS: Final[int] = 4
 SNAPNR: Final[int] = 2
 
 

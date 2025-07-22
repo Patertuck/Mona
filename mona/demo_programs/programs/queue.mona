@@ -1,6 +1,6 @@
 println("1");
-spawn{
-println("2"); }
+println("2");   
 println("3"); 
 println("4");
 println("5");
+println("6");

@@ -103,7 +103,10 @@ class ExecModeRecord(ExecMode):
                 src_env_ref._msg_queue = copy.deepcopy(env._msg_queue)
                 self._inject_snap_mode(src_env_ref, src_env_snap_id, steps=self._exec_steps)
                 print(f"[DEBUG] Snapshotting snap_id={src_env_snap_id}\n")
+                env._msg_queue.print_all()
+                src_env_ref._current_snap_id = src_env_snap_id
                 self.snapshot(env=src_env_ref, snap_id=src_env_snap_id)
+                Environment._thread_envs[env._thread_id] = copy.deepcopy(env)
                 #self._dump_and_verify(src_env_ref, src_env_snap_id)
     
     @classmethod
@@ -111,17 +114,6 @@ class ExecModeRecord(ExecMode):
         with cls._snap_lock:
             cls._global_snap_id += 1
             return cls._global_snap_id
-
-    # check this again, not sure if correct
-    def force_snapshot(self, env: "Environment") -> None:
-        """
-        Immediately write a snapshot of `env`, using the same bookkeeping
-        we already use internally.  Safe to call from anywhere.
-        """
-        # Make sure the *current* env is captured too.
-        self._src_env = copy.deepcopy(env)
-        self._exec_steps = 0           # reset step counter
-        self._snap_src(env)               # write it to disk
 
     def before_execution(self, env: Environment) -> None:
         saved_threads = env._threads
@@ -131,6 +123,17 @@ class ExecModeRecord(ExecMode):
 
     def exec(self, env: Environment) -> None:
         self._exec_steps += 1
+
+        if self._exec_steps >= self._steps:
+            self._snap_src(env)
+            self._src_env = copy.deepcopy(env)
+            self._snap_id += 1
+            self._exec_steps = 0
+
+            env.clear_io()
+            env.clear_message_queue()
+            env.clear_thread_envs()
+
     
     # chatgpt generated
     def _dump_and_verify(self, env: "Environment", snap_id: int) -> None:
@@ -198,8 +201,13 @@ class ExecModeReplay(ExecMode):
         env._msg_queue.print_all()   
         print(f"[REPLAY] thread_id={env._thread_id}  queue_head={env._queue_head()}")
         
-        env.trace_idx = 0
         env.clear_io()
+
+        if not env._msg_queue._queue:
+            print(f"[REPLAY] Queue is empty at start. Snapshotting immediately at seq_id={env.seq_id}")
+            snap_id = env._current_snap_id
+            self.snapshot(env, snap_id)
+            sys.exit() 
 
     def exec(self, env: Environment) -> None:
         self.run_stmts += 1
@@ -208,16 +216,16 @@ class ExecModeReplay(ExecMode):
 
         if not env._msg_queue._queue:
             print(f"[REPLAY] Queue is empty. Stopping replay. Snapshotting at seq_id={env.seq_id}, run_stmts={self.run_stmts}")
-            snap_id = ExecModeRecord.next_global_snap_id()
+            snap_id = env._current_snap_id
             self.snapshot(env, snap_id)
             sys.exit()
 
         # probably can remove
-        if self._curr_steps == 0:
-            print(f"[REPLAY] Stopping replay. Snapshotting at seq_id={env.seq_id}, run_stmts={self.run_stmts}")
-            snap_id = ExecModeRecord.next_global_snap_id()
-            self.snapshot(env, snap_id)
-            sys.exit()
+        # if self._curr_steps == 0:
+        #     print(f"[REPLAY] Stopping replay. Snapshotting at seq_id={env.seq_id}, run_stmts={self.run_stmts}")
+        #     snap_id = ExecModeRecord.next_global_snap_id()
+        #     self.snapshot(env, snap_id)
+        #     sys.exit()
 
 
     def after_execution(self, env: Environment) -> None:
@@ -291,20 +299,6 @@ class UuidQueue:
             if isinstance(env._exec_mode, ExecModeRecord) and thread_id not in env._thread_envs:
                 env._thread_envs[thread_id] = copy.deepcopy(env)
 
-            # Check if snapshot condition is met
-            if isinstance(env._exec_mode, ExecModeRecord):
-                if len(self._queue) >= env._exec_mode._steps:
-                    self.print_all()
-                    env._exec_mode._snap_src(env)
-                    env._exec_mode._src_env = copy.deepcopy(env)
-                    env._exec_mode._snap_id += 1
-                    env._exec_mode._exec_steps = 0
-
-                    env.clear_io()
-                    env.clear_message_queue()
-                    env.clear_thread_envs()
-
-
     def dequeue(self, env:Environment) -> str | None:
         if self._queue:
             tid = self._queue.popleft()
@@ -375,6 +369,7 @@ class Environment:
         self._threads = []
         self._thread_id = 0
         self.stack = list()
+        self._current_snap_id: int = -1
 
         self._io_logs = IOLogs()
 
