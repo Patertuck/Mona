@@ -43,16 +43,16 @@ class Spawn(Component):
 
         # Assign matching ExecMode
         if isinstance(env._exec_mode, ExecModeRecord):
-            thread_env._exec_mode = ExecModeRecord(
+            record_mode = ExecModeRecord(
                 steps=env._exec_mode._steps,
                 dump_dir=env._exec_mode._dump_dir,
             )
-            thread_env._exec_mode._src_env = copy.deepcopy(thread_env)
-            
+            record_mode._src_env = copy.deepcopy(thread_env)
+            thread_env._exec_mode = record_mode
+
         elif isinstance(env._exec_mode, ExecModeReplay):
             thread_env._exec_mode = ExecModeReplay(
                 steps=env._exec_mode._curr_steps,
-                snap_id=env._exec_mode._snap_id,
                 dump_dir=env._exec_mode._dump_dir,
             )
 

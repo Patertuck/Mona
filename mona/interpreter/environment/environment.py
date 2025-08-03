@@ -89,7 +89,7 @@ class ExecModeRecord(ExecMode):
 
     def _inject_snap_mode(self, env: Environment, snap_id: int, steps: int) -> None:
         env._exec_mode = ExecModeReplay(
-            steps=steps, snap_id=snap_id, dump_dir=self._dump_dir
+            steps=steps, dump_dir=self._dump_dir
         )
 
     def _snap_src(self, env: Environment) -> None:
@@ -185,7 +185,7 @@ class ExecModeRecord(ExecMode):
 
 
 class ExecModeReplay(ExecMode):
-    def __init__(self, steps: int, snap_id: int, dump_dir: str):
+    def __init__(self, steps: int, dump_dir: str):
         super().__init__(dump_dir=dump_dir)
         self._curr_steps: int = steps
         self.run_stmts: int = 0
@@ -210,11 +210,13 @@ class ExecModeReplay(ExecMode):
             sys.exit() 
 
     def exec(self, env: Environment) -> None:
+        print("Inside Exec")
+        env._schedule_next(env)
         self.run_stmts += 1
         self._curr_steps -= 1
         assert self._curr_steps >= -10, "Replay over-ran by >10 statements – possible trace divergence."
 
-        if not env._msg_queue._queue:
+        if self._curr_steps == 0:
             print(f"[REPLAY] Queue is empty. Stopping replay. Snapshotting at seq_id={env.seq_id}, run_stmts={self.run_stmts}")
             snap_id = env._current_snap_id
             self.snapshot(env, snap_id)
@@ -383,6 +385,8 @@ class Environment:
     def __setstate__(self, state):
         self.__dict__.update(state)
         self._threads = []  # Reset threads list after unpickling
+        if "_thread_id" not in state or state["_thread_id"] is None:
+            self._thread_id = 0
 
     def wait_for_threads(self):
         #print(f"Current threads: {self._threads}")

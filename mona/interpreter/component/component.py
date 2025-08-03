@@ -48,9 +48,9 @@ class Component(abc.ABC):
     def eval(self, env: Environment) -> None:
         from mona.interpreter.component.program import Program 
 
-        if env.is_replay() and not env._msg_queue._queue:
-            print("[DEBUG]queue is empty — skipping eval")
-            return 
+        # if env.is_replay() and not env._msg_queue._queue:
+        #     print("[DEBUG]queue is empty — skipping eval")
+        #     return 
         
         #print(f"Current env id:{env._thread_id}, env_seq_id:{env.seq_id}, queuehead:{env._queue_head()}, self.seq_id:{self.seq_id}")
         #print(f"Current env call trace:", env.call_trace)
@@ -58,14 +58,15 @@ class Component(abc.ABC):
         if self.seq_id <= env.seq_id:
             if DEBUG:
                 print(f"[DEBUG] [prun] {self._log_exec_point(env)} -> {self}")
+                # can probably delete
                 if env.is_replay() and env._amt_requeues:
                     for _ in range(env._amt_requeues):
                         env._msg_queue.enqueue_at_start(env._thread_id)
                     env._amt_requeues = 0
             return
 
-        if env.is_replay() and self.seq_id > env.seq_id and not isinstance(self, Program):
-            env._schedule_next(env)
+        # if env.is_replay() and self.seq_id > env.seq_id and not isinstance(self, Program):
+        #     env._schedule_next(env)
         # Execute exactly this code point (self.seq_id == env.seq_id).
         if DEBUG:
             print(f"[DEBUG] [eval] {self._log_exec_point(env)} -> {self}")
