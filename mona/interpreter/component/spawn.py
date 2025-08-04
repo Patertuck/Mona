@@ -5,6 +5,7 @@ import uuid
 from mona.interpreter.component.component import Component
 from mona.interpreter.component.stmt_block import StmtBlock
 from mona.interpreter.environment.environment import (
+    GLOBAL_REPLAY_STEPS,
     Environment,
     ExecModeRun,
     ExecModeRecord,
@@ -34,6 +35,8 @@ class Spawn(Component):
 
         # Create a deep copy of the env for the thread
         thread_env = copy.deepcopy(env)
+        thread_env._msg_queue = env._msg_queue
+        thread_env._thread_envs = env._thread_envs
 
         thread_env._thread_id = self.thread_id  
         thread_env.trace_idx = new_trace_idx
@@ -52,7 +55,7 @@ class Spawn(Component):
 
         elif isinstance(env._exec_mode, ExecModeReplay):
             thread_env._exec_mode = ExecModeReplay(
-                steps=env._exec_mode._curr_steps,
+                steps=GLOBAL_REPLAY_STEPS.get(),
                 dump_dir=env._exec_mode._dump_dir,
             )
 

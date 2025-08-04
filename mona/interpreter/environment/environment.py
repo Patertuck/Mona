@@ -82,7 +82,6 @@ class ExecModeRecord(ExecMode):
         super().__init__(dump_dir=dump_dir)
         self._steps: Final[int] = steps
         self._exec_steps: int = 0
-        self._snap_id: int = 0
         self._snapshot_lock = threading.Lock()        
 
         self._src_env: Optional[Environment] = None
@@ -103,7 +102,7 @@ class ExecModeRecord(ExecMode):
                 src_env_ref._msg_queue = copy.deepcopy(env._msg_queue)
                 self._inject_snap_mode(src_env_ref, src_env_snap_id, steps=self._exec_steps)
                 print(f"[DEBUG] Snapshotting snap_id={src_env_snap_id}\n")
-                env._msg_queue.print_all()
+                src_env_ref._msg_queue.print_all()
                 src_env_ref._current_snap_id = src_env_snap_id
                 self.snapshot(env=src_env_ref, snap_id=src_env_snap_id)
                 Environment._thread_envs[env._thread_id] = copy.deepcopy(env)
@@ -120,19 +119,20 @@ class ExecModeRecord(ExecMode):
         env._threads = []
         self._src_env = copy.deepcopy(env)
         env._threads = saved_threads
+        GLOBAL_REPLAY_STEPS.reset(self._steps)  
 
     def exec(self, env: Environment) -> None:
-        self._exec_steps += 1
+        result = GLOBAL_REPLAY_STEPS.decrement_and_maybe_wait()
 
-        if self._exec_steps >= self._steps:
+        if result == 0:
             self._snap_src(env)
             self._src_env = copy.deepcopy(env)
-            self._snap_id += 1
-            self._exec_steps = 0
 
             env.clear_io()
             env.clear_message_queue()
             env.clear_thread_envs()
+
+            GLOBAL_REPLAY_STEPS.finish_reset(self._steps)
 
     
     # chatgpt generated
@@ -187,7 +187,7 @@ class ExecModeRecord(ExecMode):
 class ExecModeReplay(ExecMode):
     def __init__(self, steps: int, dump_dir: str):
         super().__init__(dump_dir=dump_dir)
-        self._curr_steps: int = steps
+        self._initial_steps: int = steps
         self.run_stmts: int = 0
 
     def snapshot(self, env: Environment, snap_id: Optional[int]) -> None:
@@ -202,6 +202,7 @@ class ExecModeReplay(ExecMode):
         print(f"[REPLAY] thread_id={env._thread_id}  queue_head={env._queue_head()}")
         
         env.clear_io()
+        GLOBAL_REPLAY_STEPS.reset(self._initial_steps)  
 
         if not env._msg_queue._queue:
             print(f"[REPLAY] Queue is empty at start. Snapshotting immediately at seq_id={env.seq_id}")
@@ -213,10 +214,12 @@ class ExecModeReplay(ExecMode):
         print("Inside Exec")
         env._schedule_next(env)
         self.run_stmts += 1
-        self._curr_steps -= 1
-        assert self._curr_steps >= -10, "Replay over-ran by >10 statements – possible trace divergence."
+        remaining = GLOBAL_REPLAY_STEPS.decrement_and_maybe_wait()
 
-        if self._curr_steps == 0:
+
+        assert remaining >= -10, "Replay overran more than 10 steps – possible divergence."
+
+        if remaining <= 0:
             print(f"[REPLAY] Queue is empty. Stopping replay. Snapshotting at seq_id={env.seq_id}, run_stmts={self.run_stmts}")
             snap_id = env._current_snap_id
             self.snapshot(env, snap_id)
@@ -543,7 +546,8 @@ class Environment:
 
     def _finished_node(self, tid: int) -> None:
         if isinstance(self._exec_mode, ExecModeRecord):
-            self._msg_queue.enqueue(tid, self)  # UuidQueue.append
+            if GLOBAL_REPLAY_STEPS.should_accept_enqueue():
+                self._msg_queue.enqueue(tid, self)
         return
     
     def _schedule_next(self, env: "Environment") -> None:                          
@@ -554,3 +558,47 @@ class Environment:
 
         self._amt_requeues += 1
         env._thread_id = tid             
+
+class GlobalReplayCounter:
+    def __init__(self, steps: int):
+        self.remaining_steps = steps
+        self.lock = threading.Lock()
+        self.condition = threading.Condition(self.lock)
+        self.resetting = False
+
+    def decrement_and_maybe_wait(self) -> int:
+        with self.condition:
+            self.remaining_steps -= 1
+
+            if self.remaining_steps > 0:
+                return self.remaining_steps
+            
+            # If resetting is already in progress, wait
+            while self.resetting:
+                self.condition.wait()
+                return self.remaining_steps
+
+            # This thread performs the reset
+            self.resetting = True
+            return 0  # caller should perform the reset logic
+
+    def finish_reset(self, steps: int):
+        with self.condition:
+            self.remaining_steps = steps
+            self.resetting = False
+            self.condition.notify_all()
+
+
+    def get(self) -> int:
+        with self.lock:
+            return self.remaining_steps
+
+    def reset(self, steps: int):
+        with self.lock:
+            self.remaining_steps = steps
+
+    def should_accept_enqueue(self) -> bool:
+        with self.lock:
+            return self.remaining_steps > 0 and not self.resetting
+
+GLOBAL_REPLAY_STEPS = GlobalReplayCounter(steps=0)
