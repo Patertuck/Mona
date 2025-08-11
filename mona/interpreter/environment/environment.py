@@ -88,24 +88,29 @@ class ExecModeRecord(ExecMode):
 
     def _inject_snap_mode(self, env: Environment, snap_id: int, steps: int) -> None:
         env._exec_mode = ExecModeReplay(
-            steps=steps, dump_dir=self._dump_dir
+            steps=self._steps, dump_dir=self._dump_dir
         )
 
     def _snap_src(self, env: Environment) -> None:
         if self._src_env is not None:
             with self._snapshot_lock:
 
-                src_env_ref = self._src_env
+                thread_id = GLOBAL_MSG_QUEUE.peek()
+                if thread_id is not None and thread_id in GLOBAL_THREAD_ENVS:
+                    src_env_ref = GLOBAL_THREAD_ENVS[thread_id]
+                else:
+                    src_env_ref = self._src_env
+
                 src_env_ref._threads = []
                 src_env_ref._msg_queue = env._msg_queue
                 src_env_snap_id = ExecModeRecord.next_global_snap_id()
                 src_env_ref._msg_queue = copy.deepcopy(env._msg_queue)
                 self._inject_snap_mode(src_env_ref, src_env_snap_id, steps=self._exec_steps)
-                print(f"[DEBUG] Snapshotting snap_id={src_env_snap_id}\n")
+                print(f"[DEBUG] Snapshotting snap_id={src_env_snap_id} and sequence id = {src_env_ref.seq_id}\n")
                 src_env_ref._msg_queue.print_all()
                 src_env_ref._current_snap_id = src_env_snap_id
                 self.snapshot(env=src_env_ref, snap_id=src_env_snap_id)
-                Environment._thread_envs[env._thread_id] = copy.deepcopy(env)
+                GLOBAL_THREAD_ENVS[env._thread_id] = copy.deepcopy(env)
                 #self._dump_and_verify(src_env_ref, src_env_snap_id)
     
     @classmethod
@@ -122,7 +127,7 @@ class ExecModeRecord(ExecMode):
         GLOBAL_REPLAY_STEPS.reset(self._steps)  
 
     def exec(self, env: Environment) -> None:
-        result = GLOBAL_REPLAY_STEPS.decrement_and_maybe_wait()
+        result = GLOBAL_REPLAY_STEPS.decrement_and_maybe_wait_record()
 
         if result == 0:
             self._snap_src(env)
@@ -130,7 +135,7 @@ class ExecModeRecord(ExecMode):
 
             env.clear_io()
             env.clear_message_queue()
-            env.clear_thread_envs()
+            GLOBAL_THREAD_ENVS.clear()
 
             GLOBAL_REPLAY_STEPS.finish_reset(self._steps)
 
@@ -199,7 +204,7 @@ class ExecModeReplay(ExecMode):
         # Reset starting point
         print("\n>>>> MESSAGE-QUEUE AT REPLAY START")
         env._msg_queue.print_all()   
-        print(f"[REPLAY] thread_id={env._thread_id}  queue_head={env._queue_head()}")
+        print(f"[REPLAY] thread_id={env._thread_id}  seq_id={env.seq_id}")
         
         env.clear_io()
         GLOBAL_REPLAY_STEPS.reset(self._initial_steps)  
@@ -214,13 +219,12 @@ class ExecModeReplay(ExecMode):
         print("Inside Exec")
         env._schedule_next(env)
         self.run_stmts += 1
-        remaining = GLOBAL_REPLAY_STEPS.decrement_and_maybe_wait()
-
-
+        remaining = GLOBAL_REPLAY_STEPS.decrement_replay()
+        
         assert remaining >= -10, "Replay overran more than 10 steps – possible divergence."
 
         if remaining <= 0:
-            print(f"[REPLAY] Queue is empty. Stopping replay. Snapshotting at seq_id={env.seq_id}, run_stmts={self.run_stmts}")
+            print(f"[REPLAY] Stopping replay. Snapshotting at seq_id={env.seq_id}, run_stmts={self.run_stmts}")
             snap_id = env._current_snap_id
             self.snapshot(env, snap_id)
             sys.exit()
@@ -301,8 +305,8 @@ class UuidQueue:
             print(f"Enqueuing: {thread_id}")
             self._queue.append(thread_id)
 
-            if isinstance(env._exec_mode, ExecModeRecord) and thread_id not in env._thread_envs:
-                env._thread_envs[thread_id] = copy.deepcopy(env)
+            if isinstance(env._exec_mode, ExecModeRecord) and thread_id not in GLOBAL_THREAD_ENVS:
+                GLOBAL_THREAD_ENVS[thread_id] = copy.deepcopy(env)
 
     def dequeue(self, env:Environment) -> str | None:
         if self._queue:
@@ -312,8 +316,8 @@ class UuidQueue:
 
             if env.is_replay():
                 # restore correct env
-                if tid in env._thread_envs:
-                    env = env._thread_envs[tid]
+                if tid in GLOBAL_THREAD_ENVS:
+                    env = GLOBAL_THREAD_ENVS[tid]
                     env._thread_id = tid
 
             return tid
@@ -348,7 +352,14 @@ class UuidQueue:
         for idx, tid in enumerate(self._queue, start=1):
             print(f"  {idx}. {tid}")
 
+    def peek(self) -> str | None:
+        if self._queue:
+            return self._queue[0]
+        return None
+
 GLOBAL_MSG_QUEUE = UuidQueue()
+GLOBAL_THREAD_ENVS: dict[str, Environment] = {}
+
 
 class Environment:
     _mem: OrderedDict[int, OrderedDict[str, Any]]
@@ -566,21 +577,25 @@ class GlobalReplayCounter:
         self.condition = threading.Condition(self.lock)
         self.resetting = False
 
-    def decrement_and_maybe_wait(self) -> int:
+    def decrement_and_maybe_wait_record(self) -> int:
         with self.condition:
             self.remaining_steps -= 1
 
             if self.remaining_steps > 0:
                 return self.remaining_steps
-            
-            # If resetting is already in progress, wait
+
             while self.resetting:
                 self.condition.wait()
                 return self.remaining_steps
 
-            # This thread performs the reset
             self.resetting = True
-            return 0  # caller should perform the reset logic
+            return 0  # caller should perform reset
+
+    def decrement_replay(self) -> int:
+        with self.lock:
+            self.remaining_steps -= 1
+            return self.remaining_steps
+
 
     def finish_reset(self, steps: int):
         with self.condition:

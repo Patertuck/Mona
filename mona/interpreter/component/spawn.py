@@ -21,43 +21,41 @@ class Spawn(Component):
 
     def _eval_body(self, env: Environment) -> None:
         if not isinstance(env._exec_mode, ExecModeReplay):
-            env.seq_id = self.seq_id 
-        
-        # if isinstance(env._exec_mode, ExecModeRecord):
-        #     env._exec_mode.force_snapshot(env)
+            env.seq_id = self.seq_id
 
+        # Generate a new UUID-based trace_idx for the thread
         new_trace_idx = str(uuid.uuid4())
 
+        # If main call_trace is a list, convert it to dict-once (shared reference)
         if isinstance(env.call_trace, list):
             env.call_trace = {0: env.call_trace}
 
         env.call_trace[new_trace_idx] = [self.seq_id]
 
-        # Create a deep copy of the env for the thread
         thread_env = copy.deepcopy(env)
+
         thread_env._msg_queue = env._msg_queue
         thread_env._thread_envs = env._thread_envs
+        thread_env.call_trace = env.call_trace
 
-        thread_env._thread_id = self.thread_id  
+        thread_env._thread_id = self.thread_id
         thread_env.trace_idx = new_trace_idx
-        
-        thread_env.seq_id = 0
+        thread_env.seq_id = self.seq_id
         thread_env.stack = []
 
-        # Assign matching ExecMode
-        if isinstance(env._exec_mode, ExecModeRecord):
+        if isinstance(env._exec_mode, ExecModeReplay):
+            thread_env._exec_mode = env._exec_mode
+            self.stmt_block.eval(thread_env)
+            env.thread_done(self.thread_id)
+            return
+
+        elif isinstance(env._exec_mode, ExecModeRecord):
             record_mode = ExecModeRecord(
                 steps=env._exec_mode._steps,
                 dump_dir=env._exec_mode._dump_dir,
             )
             record_mode._src_env = copy.deepcopy(thread_env)
             thread_env._exec_mode = record_mode
-
-        elif isinstance(env._exec_mode, ExecModeReplay):
-            thread_env._exec_mode = ExecModeReplay(
-                steps=GLOBAL_REPLAY_STEPS.get(),
-                dump_dir=env._exec_mode._dump_dir,
-            )
 
         else:
             thread_env._exec_mode = ExecModeRun(dump_dir=".")
