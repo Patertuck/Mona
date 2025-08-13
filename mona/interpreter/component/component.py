@@ -6,7 +6,7 @@ import sys
 import time
 from typing import Final
 
-DEBUG =  True
+from mona.config import DEBUG
 
 
 class Component(abc.ABC):

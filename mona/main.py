@@ -4,6 +4,7 @@ from typing import Final
 
 from mona import runtime_factory
 from mona.demo_programs.demo_runner import test_record_replay
+from mona.config import DEBUG, STEPS, OUTPUT_DIR
 
 # DEMO_SRC: Final[str] = """
 # decl strlst(lst) {
@@ -19,9 +20,6 @@ with open("mona/demo_programs/programs/queue.mona", "r", encoding="utf-8") as f:
 #with open("mona/demo_programs/programs/sharedVariable.mona", "r", encoding="utf-8") as f:
     DEMO_SRC = f.read()
 
-
-OUTPUT_DIR: Final[str] = os.path.join(os.getcwd(), "output_dir")
-STEPS: Final[int] = 4
 SNAPNR: Final[int] = 2
 
 
@@ -46,7 +44,7 @@ def main():
     # print(f"\n>>>>>> REPLAYING EXECUTION SNAPSHOT '{replay_snapshot_filepath}' into '{output_replay_snapshot_filepath}'")
     # runtime_factory.replay_snapshot(src=DEMO_SRC, snapshot_filename=replay_snapshot_filepath)
 
-    replay_all_snapshots(src=DEMO_SRC, output_dir=OUTPUT_DIR)
+    #replay_all_snapshots(src=DEMO_SRC, output_dir=OUTPUT_DIR)
 
 
 # chatgpt generated

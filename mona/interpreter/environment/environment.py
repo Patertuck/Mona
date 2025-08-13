@@ -9,9 +9,7 @@ import threading
 import uuid
 from collections import OrderedDict, deque
 from typing import Any, Final, Optional, Callable
-
-
-
+from mona.config import DEBUG
 
 class NoValue:
     pass
@@ -106,8 +104,9 @@ class ExecModeRecord(ExecMode):
                 src_env_snap_id = ExecModeRecord.next_global_snap_id()
                 src_env_ref._msg_queue = copy.deepcopy(env._msg_queue)
                 self._inject_snap_mode(src_env_ref, src_env_snap_id, steps=self._exec_steps)
-                print(f"[DEBUG] Snapshotting snap_id={src_env_snap_id} and sequence id = {src_env_ref.seq_id}\n")
-                src_env_ref._msg_queue.print_all()
+                if DEBUG:
+                    print(f"[DEBUG] Snapshotting snap_id={src_env_snap_id} and sequence id = {src_env_ref.seq_id}\n")
+                    src_env_ref._msg_queue.print_all()
                 src_env_ref._current_snap_id = src_env_snap_id
                 self.snapshot(env=src_env_ref, snap_id=src_env_snap_id)
                 GLOBAL_THREAD_ENVS[env._thread_id] = copy.deepcopy(env)
@@ -202,21 +201,23 @@ class ExecModeReplay(ExecMode):
 
     def before_execution(self, env: Environment) -> None:
         # Reset starting point
-        print("\n>>>> MESSAGE-QUEUE AT REPLAY START")
-        env._msg_queue.print_all()   
-        print(f"[REPLAY] thread_id={env._thread_id}  seq_id={env.seq_id}")
+        if DEBUG:
+            print("\n>>>> MESSAGE-QUEUE AT REPLAY START")
+            env._msg_queue.print_all()   
+            print(f"[DEBUG] thread_id={env._thread_id}  seq_id={env.seq_id}")
         
         env.clear_io()
         GLOBAL_REPLAY_STEPS.reset(self._initial_steps)  
 
         if not env._msg_queue._queue:
-            print(f"[REPLAY] Queue is empty at start. Snapshotting immediately at seq_id={env.seq_id}")
+            if DEBUG:
+                print(f"[DEBUG] Queue is empty at start. Snapshotting immediately at seq_id={env.seq_id}")
             snap_id = env._current_snap_id
             self.snapshot(env, snap_id)
             sys.exit() 
 
     def exec(self, env: Environment) -> None:
-        print("Inside Exec")
+        #print("Inside Exec")
         env._schedule_next(env)
         self.run_stmts += 1
         remaining = GLOBAL_REPLAY_STEPS.decrement_replay()
@@ -302,7 +303,8 @@ class UuidQueue:
 
     def enqueue(self, thread_id: str, env: Environment) -> None:
         with self._lock:
-            print(f"Enqueuing: {thread_id}")
+            if DEBUG:
+                print(f"[DEBUG] Enqueuing: {thread_id}")
             self._queue.append(thread_id)
 
             if isinstance(env._exec_mode, ExecModeRecord) and thread_id not in GLOBAL_THREAD_ENVS:
@@ -311,8 +313,9 @@ class UuidQueue:
     def dequeue(self, env:Environment) -> str | None:
         if self._queue:
             tid = self._queue.popleft()
-            self.print_all()
-            print(f"[DEBUG] Dequeued thread id: {tid}")
+            if DEBUG:
+                self.print_all()
+                print(f"[DEBUG] Dequeued thread id: {tid}")
 
             if env.is_replay():
                 # restore correct env
@@ -345,7 +348,7 @@ class UuidQueue:
     
     def print_all(self) -> None:
         if not self._queue:
-            print("(queue is empty)")
+            print("([DEBUG] Queue is empty)")
             return
 
         print("UuidQueue contents:")

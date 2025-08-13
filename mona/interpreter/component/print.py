@@ -3,6 +3,7 @@ from typing import Final
 from mona.interpreter.component.arg_lst import ArgumentList
 from mona.interpreter.component.component import Component
 from mona.interpreter.environment.environment import Environment
+from mona.config import DEBUG
 
 
 class Print(Component):
@@ -14,9 +15,9 @@ class Print(Component):
         super()._eval_body(env=env)
         self.arg_lst.eval(env=env)
 
-        print(f"[DEBUG] Inside Print._eval_body for seq_id={self.seq_id}")
-        print("[DEBUG] Stack before building print:", env.stack)
-
+        if DEBUG:
+            print(f"[DEBUG] Inside Print._eval_body for seq_id={self.seq_id}")
+            print("[DEBUG] Stack before building print:", env.stack)
 
         print_elems = list()
         for i, _ in enumerate(self.arg_lst.exprs):
