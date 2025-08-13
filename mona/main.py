@@ -15,7 +15,7 @@ from mona.config import DEBUG, STEPS, OUTPUT_DIR
 # }
 # strlst([1, 2, 9]);
 # """
-with open("mona/demo_programs/programs/queue.mona", "r", encoding="utf-8") as f:
+with open("mona/demo_programs/programs/matrix_mul.mona", "r", encoding="utf-8") as f:
 #with open("mona/demo_programs/programs/singleThread.mona", "r", encoding="utf-8") as f:
 #with open("mona/demo_programs/programs/sharedVariable.mona", "r", encoding="utf-8") as f:
     DEMO_SRC = f.read()
