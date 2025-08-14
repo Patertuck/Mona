@@ -2,7 +2,7 @@ from typing import Final
 import os
 
 DEBUG_DEFAULT: Final[bool] = False
-STEPS_DEFAULT: Final[int] = 1000
+STEPS_DEFAULT: Final[int] = 100
 OUTPUT_DIR_DEFAULT: Final[str] = os.path.join(os.getcwd(), "output_dir")
 
 def _to_bool(v: str | None, default: bool) -> bool:

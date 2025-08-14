@@ -1,4 +1,4 @@
-# Generated from GramParser.g4 by ANTLR 4.13.0
+# Generated from mona/antlr/GramParser.g4 by ANTLR 4.13.2
 from antlr4 import *
 if "." in __name__:
     from .GramParser import GramParser
@@ -191,6 +191,11 @@ class GramParserVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by GramParser#bool_expr_binary.
     def visitBool_expr_binary(self, ctx:GramParser.Bool_expr_binaryContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by GramParser#expr_spawn_block.
+    def visitExpr_spawn_block(self, ctx:GramParser.Expr_spawn_blockContext):
         return self.visitChildren(ctx)
 
 

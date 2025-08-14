@@ -1,4 +1,4 @@
-# Generated from mona/antlr/GramParser.g4 by ANTLR 4.13.2
+# Generated from GramParser.g4 by ANTLR 4.13.2
 # encoding: utf-8
 from antlr4 import *
 from io import StringIO
@@ -255,20 +255,6 @@ class GramParser ( Parser ):
         def getRuleIndex(self):
             return GramParser.RULE_program
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterProgram" ):
-                listener.enterProgram(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitProgram" ):
-                listener.exitProgram(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitProgram" ):
-                return visitor.visitProgram(self)
-            else:
-                return visitor.visitChildren(self)
-
 
 
 
@@ -333,20 +319,6 @@ class GramParser ( Parser ):
             return self.getTypedRuleContext(GramParser.If_blockContext,0)
 
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterStmt_if_block" ):
-                listener.enterStmt_if_block(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitStmt_if_block" ):
-                listener.exitStmt_if_block(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitStmt_if_block" ):
-                return visitor.visitStmt_if_block(self)
-            else:
-                return visitor.visitChildren(self)
-
 
     class Stmt_stmt_blockContext(StmtContext):
 
@@ -360,20 +332,6 @@ class GramParser ( Parser ):
         def SEMI(self):
             return self.getToken(GramParser.SEMI, 0)
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterStmt_stmt_block" ):
-                listener.enterStmt_stmt_block(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitStmt_stmt_block" ):
-                listener.exitStmt_stmt_block(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitStmt_stmt_block" ):
-                return visitor.visitStmt_stmt_block(self)
-            else:
-                return visitor.visitChildren(self)
-
 
     class Stmt_func_declContext(StmtContext):
 
@@ -384,20 +342,6 @@ class GramParser ( Parser ):
         def func_decl(self):
             return self.getTypedRuleContext(GramParser.Func_declContext,0)
 
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterStmt_func_decl" ):
-                listener.enterStmt_func_decl(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitStmt_func_decl" ):
-                listener.exitStmt_func_decl(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitStmt_func_decl" ):
-                return visitor.visitStmt_func_decl(self)
-            else:
-                return visitor.visitChildren(self)
 
 
     class Stmt_assigContext(StmtContext):
@@ -412,20 +356,6 @@ class GramParser ( Parser ):
         def SEMI(self):
             return self.getToken(GramParser.SEMI, 0)
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterStmt_assig" ):
-                listener.enterStmt_assig(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitStmt_assig" ):
-                listener.exitStmt_assig(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitStmt_assig" ):
-                return visitor.visitStmt_assig(self)
-            else:
-                return visitor.visitChildren(self)
-
 
     class Stmt_whileContext(StmtContext):
 
@@ -436,20 +366,6 @@ class GramParser ( Parser ):
         def while_(self):
             return self.getTypedRuleContext(GramParser.WhileContext,0)
 
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterStmt_while" ):
-                listener.enterStmt_while(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitStmt_while" ):
-                listener.exitStmt_while(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitStmt_while" ):
-                return visitor.visitStmt_while(self)
-            else:
-                return visitor.visitChildren(self)
 
 
     class Stmt_func_callContext(StmtContext):
@@ -464,20 +380,6 @@ class GramParser ( Parser ):
         def SEMI(self):
             return self.getToken(GramParser.SEMI, 0)
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterStmt_func_call" ):
-                listener.enterStmt_func_call(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitStmt_func_call" ):
-                listener.exitStmt_func_call(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitStmt_func_call" ):
-                return visitor.visitStmt_func_call(self)
-            else:
-                return visitor.visitChildren(self)
-
 
     class Stmt_printContext(StmtContext):
 
@@ -490,20 +392,6 @@ class GramParser ( Parser ):
 
         def SEMI(self):
             return self.getToken(GramParser.SEMI, 0)
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterStmt_print" ):
-                listener.enterStmt_print(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitStmt_print" ):
-                listener.exitStmt_print(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitStmt_print" ):
-                return visitor.visitStmt_print(self)
-            else:
-                return visitor.visitChildren(self)
 
 
     class Stmt_spawnContext(StmtContext):
@@ -520,20 +408,6 @@ class GramParser ( Parser ):
         def SEMI(self):
             return self.getToken(GramParser.SEMI, 0)
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterStmt_spawn" ):
-                listener.enterStmt_spawn(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitStmt_spawn" ):
-                listener.exitStmt_spawn(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitStmt_spawn" ):
-                return visitor.visitStmt_spawn(self)
-            else:
-                return visitor.visitChildren(self)
-
 
     class Stmt_joinContext(StmtContext):
 
@@ -545,20 +419,6 @@ class GramParser ( Parser ):
             return self.getToken(GramParser.JOIN, 0)
         def SEMI(self):
             return self.getToken(GramParser.SEMI, 0)
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterStmt_join" ):
-                listener.enterStmt_join(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitStmt_join" ):
-                listener.exitStmt_join(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitStmt_join" ):
-                return visitor.visitStmt_join(self)
-            else:
-                return visitor.visitChildren(self)
 
 
     class Stmt_var_declrContext(StmtContext):
@@ -572,20 +432,6 @@ class GramParser ( Parser ):
 
         def SEMI(self):
             return self.getToken(GramParser.SEMI, 0)
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterStmt_var_declr" ):
-                listener.enterStmt_var_declr(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitStmt_var_declr" ):
-                listener.exitStmt_var_declr(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitStmt_var_declr" ):
-                return visitor.visitStmt_var_declr(self)
-            else:
-                return visitor.visitChildren(self)
 
 
 
@@ -720,20 +566,6 @@ class GramParser ( Parser ):
             return self.getTypedRuleContext(GramParser.ExprContext,0)
 
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterAssig_trgt_expr" ):
-                listener.enterAssig_trgt_expr(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitAssig_trgt_expr" ):
-                listener.exitAssig_trgt_expr(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitAssig_trgt_expr" ):
-                return visitor.visitAssig_trgt_expr(self)
-            else:
-                return visitor.visitChildren(self)
-
 
     class Assig_trgt_idenContext(Assig_trgtContext):
 
@@ -743,20 +575,6 @@ class GramParser ( Parser ):
 
         def IDEN(self):
             return self.getToken(GramParser.IDEN, 0)
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterAssig_trgt_iden" ):
-                listener.enterAssig_trgt_iden(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitAssig_trgt_iden" ):
-                listener.exitAssig_trgt_iden(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitAssig_trgt_iden" ):
-                return visitor.visitAssig_trgt_iden(self)
-            else:
-                return visitor.visitChildren(self)
 
 
 
@@ -815,20 +633,6 @@ class GramParser ( Parser ):
         def getRuleIndex(self):
             return GramParser.RULE_var_declr
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterVar_declr" ):
-                listener.enterVar_declr(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitVar_declr" ):
-                listener.exitVar_declr(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitVar_declr" ):
-                return visitor.visitVar_declr(self)
-            else:
-                return visitor.visitChildren(self)
-
 
 
 
@@ -879,20 +683,6 @@ class GramParser ( Parser ):
 
         def getRuleIndex(self):
             return GramParser.RULE_if_block
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterIf_block" ):
-                listener.enterIf_block(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitIf_block" ):
-                listener.exitIf_block(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitIf_block" ):
-                return visitor.visitIf_block(self)
-            else:
-                return visitor.visitChildren(self)
 
 
 
@@ -961,20 +751,6 @@ class GramParser ( Parser ):
         def getRuleIndex(self):
             return GramParser.RULE_if_stmt
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterIf_stmt" ):
-                listener.enterIf_stmt(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitIf_stmt" ):
-                listener.exitIf_stmt(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitIf_stmt" ):
-                return visitor.visitIf_stmt(self)
-            else:
-                return visitor.visitChildren(self)
-
 
 
 
@@ -1033,20 +809,6 @@ class GramParser ( Parser ):
         def getRuleIndex(self):
             return GramParser.RULE_elseif_stmt
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterElseif_stmt" ):
-                listener.enterElseif_stmt(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitElseif_stmt" ):
-                listener.exitElseif_stmt(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitElseif_stmt" ):
-                return visitor.visitElseif_stmt(self)
-            else:
-                return visitor.visitChildren(self)
-
 
 
 
@@ -1094,20 +856,6 @@ class GramParser ( Parser ):
         def getRuleIndex(self):
             return GramParser.RULE_else_stmt
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterElse_stmt" ):
-                listener.enterElse_stmt(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitElse_stmt" ):
-                listener.exitElse_stmt(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitElse_stmt" ):
-                return visitor.visitElse_stmt(self)
-            else:
-                return visitor.visitChildren(self)
-
 
 
 
@@ -1153,20 +901,6 @@ class GramParser ( Parser ):
 
         def getRuleIndex(self):
             return GramParser.RULE_func_decl
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterFunc_decl" ):
-                listener.enterFunc_decl(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitFunc_decl" ):
-                listener.exitFunc_decl(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitFunc_decl" ):
-                return visitor.visitFunc_decl(self)
-            else:
-                return visitor.visitChildren(self)
 
 
 
@@ -1223,20 +957,6 @@ class GramParser ( Parser ):
             return self.getTypedRuleContext(GramParser.Arg_lstContext,0)
 
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterSin_call" ):
-                listener.enterSin_call(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitSin_call" ):
-                listener.exitSin_call(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitSin_call" ):
-                return visitor.visitSin_call(self)
-            else:
-                return visitor.visitChildren(self)
-
 
     class Floor_callContext(Func_call_exprContext):
 
@@ -1249,20 +969,6 @@ class GramParser ( Parser ):
         def arg_lst(self):
             return self.getTypedRuleContext(GramParser.Arg_lstContext,0)
 
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterFloor_call" ):
-                listener.enterFloor_call(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitFloor_call" ):
-                listener.exitFloor_call(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitFloor_call" ):
-                return visitor.visitFloor_call(self)
-            else:
-                return visitor.visitChildren(self)
 
 
     class Ceil_callContext(Func_call_exprContext):
@@ -1277,20 +983,6 @@ class GramParser ( Parser ):
             return self.getTypedRuleContext(GramParser.Arg_lstContext,0)
 
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterCeil_call" ):
-                listener.enterCeil_call(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitCeil_call" ):
-                listener.exitCeil_call(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitCeil_call" ):
-                return visitor.visitCeil_call(self)
-            else:
-                return visitor.visitChildren(self)
-
 
     class Round_callContext(Func_call_exprContext):
 
@@ -1304,20 +996,6 @@ class GramParser ( Parser ):
             return self.getTypedRuleContext(GramParser.Arg_lstContext,0)
 
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterRound_call" ):
-                listener.enterRound_call(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitRound_call" ):
-                listener.exitRound_call(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitRound_call" ):
-                return visitor.visitRound_call(self)
-            else:
-                return visitor.visitChildren(self)
-
 
     class Func_callContext(Func_call_exprContext):
 
@@ -1330,20 +1008,6 @@ class GramParser ( Parser ):
         def arg_lst(self):
             return self.getTypedRuleContext(GramParser.Arg_lstContext,0)
 
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterFunc_call" ):
-                listener.enterFunc_call(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitFunc_call" ):
-                listener.exitFunc_call(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitFunc_call" ):
-                return visitor.visitFunc_call(self)
-            else:
-                return visitor.visitChildren(self)
 
 
 
@@ -1434,20 +1098,6 @@ class GramParser ( Parser ):
         def getRuleIndex(self):
             return GramParser.RULE_while
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterWhile" ):
-                listener.enterWhile(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitWhile" ):
-                listener.exitWhile(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitWhile" ):
-                return visitor.visitWhile(self)
-            else:
-                return visitor.visitChildren(self)
-
 
 
 
@@ -1514,20 +1164,6 @@ class GramParser ( Parser ):
             return self.getTypedRuleContext(GramParser.Assig_trgtContext,0)
 
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterAssign_access" ):
-                listener.enterAssign_access(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitAssign_access" ):
-                listener.exitAssign_access(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitAssign_access" ):
-                return visitor.visitAssign_access(self)
-            else:
-                return visitor.visitChildren(self)
-
 
     class Assign_idenContext(AssigContext):
 
@@ -1542,20 +1178,6 @@ class GramParser ( Parser ):
         def assig_trgt(self):
             return self.getTypedRuleContext(GramParser.Assig_trgtContext,0)
 
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterAssign_iden" ):
-                listener.enterAssign_iden(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitAssign_iden" ):
-                listener.exitAssign_iden(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitAssign_iden" ):
-                return visitor.visitAssign_iden(self)
-            else:
-                return visitor.visitChildren(self)
 
 
 
@@ -1634,20 +1256,6 @@ class GramParser ( Parser ):
             return self.getTypedRuleContext(GramParser.Arg_lstContext,0)
 
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterPrint_nl" ):
-                listener.enterPrint_nl(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitPrint_nl" ):
-                listener.exitPrint_nl(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitPrint_nl" ):
-                return visitor.visitPrint_nl(self)
-            else:
-                return visitor.visitChildren(self)
-
 
     class Print_baseContext(PrintContext):
 
@@ -1660,20 +1268,6 @@ class GramParser ( Parser ):
         def arg_lst(self):
             return self.getTypedRuleContext(GramParser.Arg_lstContext,0)
 
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterPrint_base" ):
-                listener.enterPrint_base(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitPrint_base" ):
-                listener.exitPrint_base(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitPrint_base" ):
-                return visitor.visitPrint_base(self)
-            else:
-                return visitor.visitChildren(self)
 
 
 
@@ -1743,20 +1337,6 @@ class GramParser ( Parser ):
         def getRuleIndex(self):
             return GramParser.RULE_stmt_block
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterStmt_block" ):
-                listener.enterStmt_block(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitStmt_block" ):
-                listener.exitStmt_block(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitStmt_block" ):
-                return visitor.visitStmt_block(self)
-            else:
-                return visitor.visitChildren(self)
-
 
 
 
@@ -1821,20 +1401,6 @@ class GramParser ( Parser ):
 
         def getRuleIndex(self):
             return GramParser.RULE_ret_stmt
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterRet_stmt" ):
-                listener.enterRet_stmt(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitRet_stmt" ):
-                listener.exitRet_stmt(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitRet_stmt" ):
-                return visitor.visitRet_stmt(self)
-            else:
-                return visitor.visitChildren(self)
 
 
 
@@ -1903,20 +1469,6 @@ class GramParser ( Parser ):
             return self.getTypedRuleContext(GramParser.ExprContext,0)
 
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterBool_expr_pref" ):
-                listener.enterBool_expr_pref(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitBool_expr_pref" ):
-                listener.exitBool_expr_pref(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitBool_expr_pref" ):
-                return visitor.visitBool_expr_pref(self)
-            else:
-                return visitor.visitChildren(self)
-
 
     class Expr_lst_declContext(ExprContext):
 
@@ -1927,20 +1479,6 @@ class GramParser ( Parser ):
         def lst_decl(self):
             return self.getTypedRuleContext(GramParser.Lst_declContext,0)
 
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterExpr_lst_decl" ):
-                listener.enterExpr_lst_decl(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitExpr_lst_decl" ):
-                listener.exitExpr_lst_decl(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitExpr_lst_decl" ):
-                return visitor.visitExpr_lst_decl(self)
-            else:
-                return visitor.visitChildren(self)
 
 
     class Bool_expr_comp_mathContext(ExprContext):
@@ -1964,20 +1502,6 @@ class GramParser ( Parser ):
         def GREATERTHANOREQUAL(self):
             return self.getToken(GramParser.GREATERTHANOREQUAL, 0)
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterBool_expr_comp_math" ):
-                listener.enterBool_expr_comp_math(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitBool_expr_comp_math" ):
-                listener.exitBool_expr_comp_math(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitBool_expr_comp_math" ):
-                return visitor.visitBool_expr_comp_math(self)
-            else:
-                return visitor.visitChildren(self)
-
 
     class Expr_parenContext(ExprContext):
 
@@ -1993,20 +1517,6 @@ class GramParser ( Parser ):
         def RPAREN(self):
             return self.getToken(GramParser.RPAREN, 0)
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterExpr_paren" ):
-                listener.enterExpr_paren(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitExpr_paren" ):
-                listener.exitExpr_paren(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitExpr_paren" ):
-                return visitor.visitExpr_paren(self)
-            else:
-                return visitor.visitChildren(self)
-
 
     class Expr_spawnContext(ExprContext):
 
@@ -2019,20 +1529,6 @@ class GramParser ( Parser ):
         def expr(self):
             return self.getTypedRuleContext(GramParser.ExprContext,0)
 
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterExpr_spawn" ):
-                listener.enterExpr_spawn(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitExpr_spawn" ):
-                listener.exitExpr_spawn(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitExpr_spawn" ):
-                return visitor.visitExpr_spawn(self)
-            else:
-                return visitor.visitChildren(self)
 
 
     class Bool_expr_binaryContext(ExprContext):
@@ -2052,20 +1548,6 @@ class GramParser ( Parser ):
         def OR(self):
             return self.getToken(GramParser.OR, 0)
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterBool_expr_binary" ):
-                listener.enterBool_expr_binary(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitBool_expr_binary" ):
-                listener.exitBool_expr_binary(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitBool_expr_binary" ):
-                return visitor.visitBool_expr_binary(self)
-            else:
-                return visitor.visitChildren(self)
-
 
     class Expr_spawn_blockContext(ExprContext):
 
@@ -2079,20 +1561,6 @@ class GramParser ( Parser ):
             return self.getTypedRuleContext(GramParser.Stmt_blockContext,0)
 
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterExpr_spawn_block" ):
-                listener.enterExpr_spawn_block(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitExpr_spawn_block" ):
-                listener.exitExpr_spawn_block(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitExpr_spawn_block" ):
-                return visitor.visitExpr_spawn_block(self)
-            else:
-                return visitor.visitChildren(self)
-
 
     class Expr_idenContext(ExprContext):
 
@@ -2102,20 +1570,6 @@ class GramParser ( Parser ):
 
         def IDEN(self):
             return self.getToken(GramParser.IDEN, 0)
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterExpr_iden" ):
-                listener.enterExpr_iden(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitExpr_iden" ):
-                listener.exitExpr_iden(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitExpr_iden" ):
-                return visitor.visitExpr_iden(self)
-            else:
-                return visitor.visitChildren(self)
 
 
     class Expr_len_ofContext(ExprContext):
@@ -2134,20 +1588,6 @@ class GramParser ( Parser ):
         def RPAREN(self):
             return self.getToken(GramParser.RPAREN, 0)
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterExpr_len_of" ):
-                listener.enterExpr_len_of(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitExpr_len_of" ):
-                listener.exitExpr_len_of(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitExpr_len_of" ):
-                return visitor.visitExpr_len_of(self)
-            else:
-                return visitor.visitChildren(self)
-
 
     class Expr_litContext(ExprContext):
 
@@ -2158,20 +1598,6 @@ class GramParser ( Parser ):
         def literal(self):
             return self.getTypedRuleContext(GramParser.LiteralContext,0)
 
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterExpr_lit" ):
-                listener.enterExpr_lit(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitExpr_lit" ):
-                listener.exitExpr_lit(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitExpr_lit" ):
-                return visitor.visitExpr_lit(self)
-            else:
-                return visitor.visitChildren(self)
 
 
     class Bool_expr_equalsContext(ExprContext):
@@ -2189,20 +1615,6 @@ class GramParser ( Parser ):
         def EQUALS(self):
             return self.getToken(GramParser.EQUALS, 0)
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterBool_expr_equals" ):
-                listener.enterBool_expr_equals(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitBool_expr_equals" ):
-                listener.exitBool_expr_equals(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitBool_expr_equals" ):
-                return visitor.visitBool_expr_equals(self)
-            else:
-                return visitor.visitChildren(self)
-
 
     class Expr_accessContext(ExprContext):
 
@@ -2216,20 +1628,6 @@ class GramParser ( Parser ):
         def idx_access(self):
             return self.getTypedRuleContext(GramParser.Idx_accessContext,0)
 
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterExpr_access" ):
-                listener.enterExpr_access(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitExpr_access" ):
-                listener.exitExpr_access(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitExpr_access" ):
-                return visitor.visitExpr_access(self)
-            else:
-                return visitor.visitChildren(self)
 
 
     class Expr_copy_ofContext(ExprContext):
@@ -2247,20 +1645,6 @@ class GramParser ( Parser ):
 
         def RPAREN(self):
             return self.getToken(GramParser.RPAREN, 0)
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterExpr_copy_of" ):
-                listener.enterExpr_copy_of(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitExpr_copy_of" ):
-                listener.exitExpr_copy_of(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitExpr_copy_of" ):
-                return visitor.visitExpr_copy_of(self)
-            else:
-                return visitor.visitChildren(self)
 
 
     class Math_expr_binaryContext(ExprContext):
@@ -2286,20 +1670,6 @@ class GramParser ( Parser ):
         def MINUS(self):
             return self.getToken(GramParser.MINUS, 0)
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterMath_expr_binary" ):
-                listener.enterMath_expr_binary(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitMath_expr_binary" ):
-                listener.exitMath_expr_binary(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitMath_expr_binary" ):
-                return visitor.visitMath_expr_binary(self)
-            else:
-                return visitor.visitChildren(self)
-
 
     class Expr_func_callContext(ExprContext):
 
@@ -2310,20 +1680,6 @@ class GramParser ( Parser ):
         def func_call_expr(self):
             return self.getTypedRuleContext(GramParser.Func_call_exprContext,0)
 
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterExpr_func_call" ):
-                listener.enterExpr_func_call(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitExpr_func_call" ):
-                listener.exitExpr_func_call(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitExpr_func_call" ):
-                return visitor.visitExpr_func_call(self)
-            else:
-                return visitor.visitChildren(self)
 
 
 
@@ -2605,20 +1961,6 @@ class GramParser ( Parser ):
         def INT(self):
             return self.getToken(GramParser.INT, 0)
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterInt_lit" ):
-                listener.enterInt_lit(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitInt_lit" ):
-                listener.exitInt_lit(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitInt_lit" ):
-                return visitor.visitInt_lit(self)
-            else:
-                return visitor.visitChildren(self)
-
 
     class Float_litContext(LiteralContext):
 
@@ -2628,20 +1970,6 @@ class GramParser ( Parser ):
 
         def FLOAT(self):
             return self.getToken(GramParser.FLOAT, 0)
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterFloat_lit" ):
-                listener.enterFloat_lit(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitFloat_lit" ):
-                listener.exitFloat_lit(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitFloat_lit" ):
-                return visitor.visitFloat_lit(self)
-            else:
-                return visitor.visitChildren(self)
 
 
     class String_litContext(LiteralContext):
@@ -2653,20 +1981,6 @@ class GramParser ( Parser ):
         def STRING(self):
             return self.getToken(GramParser.STRING, 0)
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterString_lit" ):
-                listener.enterString_lit(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitString_lit" ):
-                listener.exitString_lit(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitString_lit" ):
-                return visitor.visitString_lit(self)
-            else:
-                return visitor.visitChildren(self)
-
 
     class Char_litContext(LiteralContext):
 
@@ -2676,20 +1990,6 @@ class GramParser ( Parser ):
 
         def CHAR(self):
             return self.getToken(GramParser.CHAR, 0)
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterChar_lit" ):
-                listener.enterChar_lit(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitChar_lit" ):
-                listener.exitChar_lit(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitChar_lit" ):
-                return visitor.visitChar_lit(self)
-            else:
-                return visitor.visitChildren(self)
 
 
     class Bool_litContext(LiteralContext):
@@ -2702,20 +2002,6 @@ class GramParser ( Parser ):
             return self.getToken(GramParser.TRUE, 0)
         def FALSE(self):
             return self.getToken(GramParser.FALSE, 0)
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterBool_lit" ):
-                listener.enterBool_lit(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitBool_lit" ):
-                listener.exitBool_lit(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitBool_lit" ):
-                return visitor.visitBool_lit(self)
-            else:
-                return visitor.visitChildren(self)
 
 
 
@@ -2804,20 +2090,6 @@ class GramParser ( Parser ):
         def getRuleIndex(self):
             return GramParser.RULE_lst_decl
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterLst_decl" ):
-                listener.enterLst_decl(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitLst_decl" ):
-                listener.exitLst_decl(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitLst_decl" ):
-                return visitor.visitLst_decl(self)
-            else:
-                return visitor.visitChildren(self)
-
 
 
 
@@ -2888,20 +2160,6 @@ class GramParser ( Parser ):
 
         def getRuleIndex(self):
             return GramParser.RULE_param_lst
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterParam_lst" ):
-                listener.enterParam_lst(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitParam_lst" ):
-                listener.exitParam_lst(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitParam_lst" ):
-                return visitor.visitParam_lst(self)
-            else:
-                return visitor.visitChildren(self)
 
 
 
@@ -2983,20 +2241,6 @@ class GramParser ( Parser ):
 
         def getRuleIndex(self):
             return GramParser.RULE_arg_lst
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterArg_lst" ):
-                listener.enterArg_lst(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitArg_lst" ):
-                listener.exitArg_lst(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitArg_lst" ):
-                return visitor.visitArg_lst(self)
-            else:
-                return visitor.visitChildren(self)
 
 
 
@@ -3081,20 +2325,6 @@ class GramParser ( Parser ):
         def RBRACK(self):
             return self.getToken(GramParser.RBRACK, 0)
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterIdx_access_one" ):
-                listener.enterIdx_access_one(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitIdx_access_one" ):
-                listener.exitIdx_access_one(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitIdx_access_one" ):
-                return visitor.visitIdx_access_one(self)
-            else:
-                return visitor.visitChildren(self)
-
 
     class Idx_access_fromContext(Idx_accessContext):
 
@@ -3112,20 +2342,6 @@ class GramParser ( Parser ):
         def RBRACK(self):
             return self.getToken(GramParser.RBRACK, 0)
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterIdx_access_from" ):
-                listener.enterIdx_access_from(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitIdx_access_from" ):
-                listener.exitIdx_access_from(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitIdx_access_from" ):
-                return visitor.visitIdx_access_from(self)
-            else:
-                return visitor.visitChildren(self)
-
 
     class Idx_access_untilContext(Idx_accessContext):
 
@@ -3142,20 +2358,6 @@ class GramParser ( Parser ):
 
         def RBRACK(self):
             return self.getToken(GramParser.RBRACK, 0)
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterIdx_access_until" ):
-                listener.enterIdx_access_until(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitIdx_access_until" ):
-                listener.exitIdx_access_until(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitIdx_access_until" ):
-                return visitor.visitIdx_access_until(self)
-            else:
-                return visitor.visitChildren(self)
 
 
     class Idx_access_rangeContext(Idx_accessContext):
@@ -3176,20 +2378,6 @@ class GramParser ( Parser ):
             return self.getToken(GramParser.COLON, 0)
         def RBRACK(self):
             return self.getToken(GramParser.RBRACK, 0)
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterIdx_access_range" ):
-                listener.enterIdx_access_range(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitIdx_access_range" ):
-                listener.exitIdx_access_range(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitIdx_access_range" ):
-                return visitor.visitIdx_access_range(self)
-            else:
-                return visitor.visitChildren(self)
 
 
 

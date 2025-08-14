@@ -25,7 +25,7 @@ stmt
     | assig SEMI           #stmt_assig
     | print SEMI           #stmt_print
     | stmt_block SEMI      #stmt_stmt_block
-    | SPAWN stmt_block     #stmt_spawn
+    | SPAWN stmt_block SEMI#stmt_spawn
     | JOIN SEMI            #stmt_join
 
     ;
@@ -101,6 +101,7 @@ expr
     : LPAREN expr RPAREN                #expr_paren
     | func_call_expr                    #expr_func_call
     | expr idx_access                   #expr_access
+    | SPAWN stmt_block                  #expr_spawn_block 
     | SPAWN expr                        #expr_spawn
 
     // boolean expressions
