@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import abc
 import copy
+from dataclasses import dataclass
 import os.path
 import pickle
 import sys
@@ -101,7 +102,7 @@ class ExecModeRecord(ExecMode):
 
                 src_env_ref._threads = []
                 src_env_snap_id = ExecModeRecord.next_global_snap_id()
-                src_env_ref._msg_queue = copy.deepcopy(env._msg_queue)
+                src_env_ref._msg_queue_snapshot = list(env._msg_queue._queue) 
                 self._inject_snap_mode(src_env_ref, src_env_snap_id, steps=self._exec_steps)
                 if DEBUG:
                     print(f"[DEBUG] Snapshotting snap_id={src_env_snap_id} and sequence id = {src_env_ref.seq_id}\n")
@@ -373,13 +374,13 @@ GLOBAL_MSG_QUEUE = UuidQueue()
 GLOBAL_THREAD_ENVS: dict[str, "Environment"] = {}
 GLOBAL_THREAD_ENVS_LOCK = threading.Lock()
 
-def envs_get(tid: str) -> Optional["Environment"]:
+def envs_get(tid: str) -> Optional[ThreadState]:
     with GLOBAL_THREAD_ENVS_LOCK:
         return GLOBAL_THREAD_ENVS.get(tid)
 
-def envs_set(tid: str, env: "Environment") -> None:
+def envs_set(tid: str, state: ThreadState) -> None:
     with GLOBAL_THREAD_ENVS_LOCK:
-        GLOBAL_THREAD_ENVS[tid] = env
+        GLOBAL_THREAD_ENVS[tid] = state
 
 def envs_del(tid: str) -> None:
     with GLOBAL_THREAD_ENVS_LOCK:
@@ -611,6 +612,31 @@ class Environment:
         env._thread_id = tid
         self._amt_requeues += 1
 
+    # Write own deepcopy because of performance
+    def __deepcopy__(self, memo):
+        cls = self.__class__
+        e = cls.__new__(cls)
+        memo[id(self)] = e
+
+        e.trace_idx         = self.trace_idx
+        e._thread_id        = self._thread_id
+        e._current_snap_id  = self._current_snap_id
+        e._amt_requeues     = getattr(self, "_amt_requeues", 0)
+
+        e.call_trace        = copy.deepcopy(self.call_trace, memo)
+        e._mem              = copy.deepcopy(self._mem, memo)
+        e.stack             = list(self.stack)
+
+        e._msg_queue        = self._msg_queue         
+        e._thread_envs      = getattr(self, "_thread_envs", {})  
+
+        e._threads          = []
+        e._io_logs          = IOLogs()
+
+        e._exec_mode        = self._exec_mode
+        return e
+
+
 
 class GlobalReplayCounter:
     def __init__(self, steps: int):
@@ -657,3 +683,18 @@ class GlobalReplayCounter:
             return self.remaining_steps > 0 and not self.resetting
 
 GLOBAL_REPLAY_STEPS = GlobalReplayCounter(steps=0)
+
+@dataclass
+class ThreadState:
+    mem: OrderedDict
+    stack: list
+    call_trace: Any
+    trace_idx: int
+
+def make_thread_state(env: "Environment") -> ThreadState:
+    return ThreadState(
+        mem=copy.deepcopy(env._mem),
+        stack=list(env.stack),
+        call_trace=copy.deepcopy(env.call_trace),
+        trace_idx=env.trace_idx,
+    )

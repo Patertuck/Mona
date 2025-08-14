@@ -22,7 +22,7 @@ class Spawn(Component):
             env.seq_id = self.seq_id
 
         thread_env = copy.copy(env)
-        thread_env._mem = env._mem
+        thread_env._mem = copy.deepcopy(env._mem)
         thread_env._msg_queue = env._msg_queue
         thread_env._thread_envs = env._thread_envs
         thread_env._thread_id = self.thread_id
