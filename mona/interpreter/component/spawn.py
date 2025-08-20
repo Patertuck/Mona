@@ -21,23 +21,13 @@ class Spawn(Component):
         if not isinstance(env._exec_mode, ExecModeReplay):
             env.seq_id = self.seq_id
 
-        thread_env = copy.copy(env)
-        thread_env._mem = copy.deepcopy(env._mem)
-        thread_env._msg_queue = env._msg_queue
-        thread_env._thread_envs = env._thread_envs
+        thread_env = copy.deepcopy(env)
         thread_env._thread_id = self.thread_id
+        thread_env._msg_queue = env._msg_queue  # shared, internally synchronized
         thread_env.stack = []
-
-        if isinstance(env.call_trace, list):
-            thread_env.call_trace = env.call_trace[:]
-        else:
-            current = env.call_trace.get(env.trace_idx, []) if isinstance(env.call_trace, dict) else []
-            thread_env.call_trace = list(current)
-
         thread_env.add_trace(self.seq_id)
-        thread_env._thread_id = self.thread_id
-        thread_env.stack = []
 
+        # Propagate/adjust exec mode
         if isinstance(env._exec_mode, ExecModeReplay):
             thread_env._exec_mode = env._exec_mode
             try:
@@ -45,25 +35,17 @@ class Spawn(Component):
             finally:
                 env.thread_done(self.thread_id)
             return
-
         elif isinstance(env._exec_mode, ExecModeRecord):
             record_mode = ExecModeRecord(
                 steps=env._exec_mode._steps,
                 dump_dir=env._exec_mode._dump_dir,
             )
-            record_mode._src_env = thread_env
+            record_mode._src_env = copy.deepcopy(thread_env)
             thread_env._exec_mode = record_mode
-
         else:
             thread_env._exec_mode = ExecModeRun(dump_dir=".")
 
-        try:
-            thread_envs = getattr(env, "_thread_envs", None)
-            if isinstance(thread_envs, dict):
-                thread_envs[self.thread_id] = thread_env
-        except Exception:
-            pass
-
+        # Launch worker
         def thread_fn():
             try:
                 self.stmt_block.eval(thread_env)
@@ -73,6 +55,8 @@ class Spawn(Component):
             finally:
                 env.thread_done(self.thread_id)
 
-        thread = threading.Thread(target=thread_fn, daemon=True)
-        thread.start()
-        env._threads.append(thread)
+        t = threading.Thread(target=thread_fn, daemon=True)
+        t.start()
+        env._threads.append(t)
+
+

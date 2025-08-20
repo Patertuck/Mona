@@ -1,3 +1,4 @@
+// --- same helpers as before ---
 decl divide(lst) {
     if (lenof(lst) == 0) {
         ret [[], []];
@@ -34,13 +35,33 @@ decl merge(lst1, lst2) {
     ret [head1] + merge(tail1, lst2);
 }
 
-decl mergesort(lst) {
+// --- multi-threaded "mergesort" that just performs the work ---
+decl mergesort_mt(lst) {
+    // no return value by design (can't get results out of threads anyway)
     if (lenof(lst) <= 1) {
-        ret lst;
+        ret;
     }
-     var evens_odds = divide(lst);
-     ret merge(mergesort(evens_odds[0]), mergesort(evens_odds[1]));
+
+    var evens_odds = divide(lst);
+    var left  = evens_odds[0];
+    var right = evens_odds[1];
+
+    // spawn both halves
+    spawn {
+        mergesort_mt(left);
+    };
+    spawn {
+        mergesort_mt(right);
+    };
+
+    // wait for spawned threads at this level
+    join;
+
+    ret;
 }
 
-var input_100k_stmts = [141, 140, 139, 138, 137, 136, 135, 134, 133, 132, 131, 130, 129, 128, 127, 126, 125, 124, 123, 122, 121, 120, 119, 118, 117, 116, 115, 114, 113, 112, 111, 110, 109, 108, 107, 106, 105, 104, 103, 102, 101, 100, 99, 98, 97, 96, 95, 94, 93, 92, 91, 90, 89, 88, 87, 86, 85, 84, 83, 82, 81, 80, 79, 78, 77, 76, 75, 74, 73, 72, 71, 70, 69, 68, 67, 66, 65, 64, 63, 62, 61, 60, 59, 58, 57, 56, 55, 54, 53, 52, 51, 50, 49, 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0];,
-println(mergesort(input_100k_stmts));
+// --- driver ---
+var input_100k_stmts = [141, 140, 139, 138, 137, 136, 135, 134, 133, 132, 131, 130, 129, 128, 127, 126, 125, 124, 123, 122, 121, 120, 119, 118, 117, 116, 115, 114, 113, 112, 111, 110, 109, 108, 107, 106, 105, 104, 103, 102, 101, 100, 99, 98, 97, 96, 95, 94, 93, 92, 91, 90, 89, 88, 87, 86, 85, 84, 83, 82, 81, 80, 79, 78, 77, 76, 75, 74, 73, 72, 71, 70, 69, 68, 67, 66, 65, 64, 63, 62, 61, 60, 59, 58, 57, 56, 55, 54, 53, 52, 51, 50, 49, 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0];
+
+mergesort_mt(input_100k_stmts);
+println("done");

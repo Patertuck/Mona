@@ -102,7 +102,7 @@ class ExecModeRecord(ExecMode):
 
                 src_env_ref._threads = []
                 src_env_snap_id = ExecModeRecord.next_global_snap_id()
-                src_env_ref._msg_queue_snapshot = list(env._msg_queue._queue) 
+                src_env_ref._msg_queue_snapshot = env._msg_queue.to_list()
                 self._inject_snap_mode(src_env_ref, src_env_snap_id, steps=self._exec_steps)
                 if DEBUG:
                     print(f"[DEBUG] Snapshotting snap_id={src_env_snap_id} and sequence id = {src_env_ref.seq_id}\n")
@@ -365,6 +365,19 @@ class UuidQueue:
             # Make a stable snapshot of the underlying deque
             new_q._queue = deque(self._queue)
         return new_q
+    
+    def to_list(self) -> list[str]:
+        with self._lock:
+            return list(self._queue)
+
+    def __getstate__(self):
+        # Serialize a stable copy under the lock
+        with self._lock:
+            return {"_queue_data": list(self._queue)}
+
+    def __setstate__(self, state):
+        self._lock = threading.Lock()
+        self._queue = deque(state.get("_queue_data", []))
 
 
 
@@ -424,6 +437,8 @@ class Environment:
     def __getstate__(self):
         state = self.__dict__.copy()
         state["_threads"] = []  # Remove active threads when pickling
+        state.pop("_state_lock", None)  # locks are not picklable
+        state.pop("_thread_envs", None)
         return state
 
     def __setstate__(self, state):

@@ -1,11 +1,11 @@
 decl busy_work(n) {
-    var acc = 0;
+    var sum = 0;
     var i = 0;
     while (i < n) {
-        acc = acc + i * i;  // Simulate a CPU-bound task (acc of squares)
+        sum = sum + i * i;  // Simulate a CPU-bound task (sum of squares)
         i = i + 1;
     }
-    ret acc; // Return the result (just to ensure that work is done)
+    ret sum; // Return the result (just to ensure that work is done)
 }
 
 decl run_multiple_threads(num_threads, work_size) {
@@ -15,7 +15,7 @@ decl run_multiple_threads(num_threads, work_size) {
     while (i < num_threads) {
         spawn {
             busy_work(work_size);  // Each thread runs busy_work with a specific size
-        };
+        }
         i = i + 1;
     }
 
