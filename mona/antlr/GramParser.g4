@@ -25,7 +25,7 @@ stmt
     | assig SEMI           #stmt_assig
     | print SEMI           #stmt_print
     | stmt_block SEMI      #stmt_stmt_block
-    | SPAWN stmt_block SEMI#stmt_spawn
+    | SPAWN stmt_block     #stmt_spawn
     | JOIN SEMI            #stmt_join
 
     ;

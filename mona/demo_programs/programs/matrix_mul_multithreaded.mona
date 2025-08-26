@@ -1,0 +1,52 @@
+
+decl get_col(matrix, idx) {
+    if (lenof(matrix) == 0) { ret []; }
+    else if (lenof(matrix[0]) <= idx) { ret []; }
+    ret [matrix[0][idx]] + get_col(matrix[1:], idx);
+}
+
+decl dot_prod(xs, ys) {
+    if (lenof(xs) == 0) { ret 0; }
+    ret (xs[0] * ys[0]) + dot_prod(xs[1:], ys[1:]);
+}
+
+decl compute_row(row, cols, j) {
+    if (lenof(cols) == 0) { ret 0; }
+    else if (j >= lenof(cols[0])) { ret 0; }
+    var _ = dot_prod(row, get_col(cols, j));
+    ret compute_row(row, cols, j + 1);
+}
+
+decl spawn_row(row, mb) {
+    spawn { compute_row(row, mb, 0); };
+    ret 0;
+}
+
+decl matrix_mul_spawn_rows(ma, mb, i) {
+    if (i >= lenof(ma)) { ret 0; }
+    var _ = spawn_row(ma[i], mb);
+    ret matrix_mul_spawn_rows(ma, mb, i + 1);
+}
+
+decl matrix_mul_fire_and_forget(ma, mb) {
+    ret matrix_mul_spawn_rows(ma, mb, 0);
+}
+
+
+var x = [
+    [199, 504, 597, 815, 774, 194, 555, 240, 324, 314, 503],
+    [108, 521, 588, 113, 824, 907, 515, 675, 738, 644, 344],
+    [327, 296, 284, 520, 123, 557, 790, 552, 445, 860, 566],
+    [6, 863, 565, 638, 121, 757, 326, 301, 731, 672, 496],
+    [850, 643, 248, 24, 801, 332, 956, 415, 789, 52, 165],
+    [286, 576, 106, 795, 157, 279, 586, 860, 63, 186, 86],
+    [290, 404, 304, 645, 607, 172, 827, 305, 444, 699, 322],
+    [9, 253, 446, 307, 899, 113, 131, 884, 985, 297, 539],
+    [554, 122, 8, 574, 225, 253, 447, 91, 555, 794, 786],
+    [635, 132, 109, 735, 29, 681, 264, 488, 207, 622, 374],
+    [872, 751, 958, 287, 146, 777, 305, 370, 540, 152, 46]
+];
+
+var _ = matrix_mul_fire_and_forget(x, x);
+join;
+println("Done");

@@ -15,7 +15,8 @@ class Spawn(Component):
     def __init__(self, seq_id: int, stmt_block: StmtBlock):
         super().__init__(seq_id=seq_id)
         self.stmt_block = stmt_block
-        self.thread_id = str(uuid.uuid4())
+        #could run into problems string for thread id but in environment its int
+        self.thread_id = str(uuid.uuid4()) 
 
     def _eval_body(self, env: Environment) -> None:
         if not isinstance(env._exec_mode, ExecModeReplay):
@@ -55,7 +56,7 @@ class Spawn(Component):
             finally:
                 env.thread_done(self.thread_id)
 
-        t = threading.Thread(target=thread_fn, daemon=True)
+        t = threading.Thread(target=thread_fn)
         t.start()
         env._threads.append(t)
 
