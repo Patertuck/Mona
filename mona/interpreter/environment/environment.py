@@ -299,8 +299,8 @@ class UuidQueue:
                 print(f"[DEBUG] Enqueuing: {thread_id}")
             self._queue.append(thread_id)
 
-        if isinstance(env._exec_mode, ExecModeRecord) and envs_get(thread_id) is None:
-            envs_set(thread_id, copy.deepcopy(env))
+        if isinstance(env._exec_mode, ExecModeRecord):
+            envs_get_or_init(thread_id, env) 
 
     def dequeue(self, env: Environment) -> str | None:
         with self._lock:
@@ -395,6 +395,15 @@ def envs_set(tid: str, state: ThreadState) -> None:
     with GLOBAL_THREAD_ENVS_LOCK:
         GLOBAL_THREAD_ENVS[tid] = state
 
+def envs_get_or_init(tid: str, env: "Environment") -> None:
+    with GLOBAL_THREAD_ENVS_LOCK:
+        st = GLOBAL_THREAD_ENVS.get(tid)
+        if st is None:
+            st = make_thread_state(env)
+            GLOBAL_THREAD_ENVS[tid] = st
+        return
+
+
 def envs_del(tid: str) -> None:
     with GLOBAL_THREAD_ENVS_LOCK:
         GLOBAL_THREAD_ENVS.pop(tid, None)
@@ -421,7 +430,6 @@ class Environment:
     def __init__(self, exec_mode: ExecMode):
         self.trace_idx = 0
         self.call_trace = [-1]
-        self._amt_requeues: int = 0
 
         self._mem = OrderedDict()
         self._msg_queue = GLOBAL_MSG_QUEUE
@@ -625,7 +633,6 @@ class Environment:
                     print(f"[WARN] No saved env for tid={tid}; continuing with current env")
 
         env._thread_id = tid
-        self._amt_requeues += 1
 
     # Write own deepcopy because of performance
     def __deepcopy__(self, memo):
@@ -636,7 +643,6 @@ class Environment:
         e.trace_idx         = self.trace_idx
         e._thread_id        = self._thread_id
         e._current_snap_id  = self._current_snap_id
-        e._amt_requeues     = getattr(self, "_amt_requeues", 0)
 
         e.call_trace        = copy.deepcopy(self.call_trace, memo)
         e._mem              = copy.deepcopy(self._mem, memo)
@@ -667,7 +673,7 @@ class GlobalReplayCounter:
             if self.remaining_steps > 0:
                 return self.remaining_steps
 
-            while self.resetting:
+            if self.resetting:
                 self.condition.wait()
                 return self.remaining_steps
 

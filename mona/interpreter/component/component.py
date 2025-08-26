@@ -58,11 +58,6 @@ class Component(abc.ABC):
         if self.seq_id <= env.seq_id:
             if DEBUG:
                 print(f"[DEBUG] [prun] {self._log_exec_point(env)} -> {self}")
-                # can probably delete
-                if env.is_replay() and env._amt_requeues:
-                    for _ in range(env._amt_requeues):
-                        env._msg_queue.enqueue_at_start(env._thread_id)
-                    env._amt_requeues = 0
             return
 
         # if env.is_replay() and self.seq_id > env.seq_id and not isinstance(self, Program):
