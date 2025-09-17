@@ -188,3 +188,31 @@ length = lenof(arr);
 copyArr = copyof(arr);
 ```
 
+#### Multithreading
+
+Mona supports basic multithreading constructs.  
+
+- `spawn { ... }` starts a new thread executing the enclosed block.  
+- `join;` blocks until all threads spawned have finished.  
+
+```plaintext
+decl main() {
+    var res = [0, 0];
+
+    spawn {
+        res[0] = 6 + 5;
+        println("Thread A done");
+    }
+
+    spawn {
+        res[1] = 11 + 3;
+        println("Thread B done");
+    }
+
+    join; // wait for both spawned threads
+    println(res); // [11, 14]
+}
+```
+
+**Note:** Replay support for multithreaded executions is still under development, so executions are not yet fully deterministic.
+
